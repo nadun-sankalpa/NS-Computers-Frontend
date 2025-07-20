@@ -39,7 +39,7 @@ export default function Navbar() {
                         {" of VAT."}
                     </div>
                     <div className="hidden md:flex items-center space-x-4 text-xs">
-                        <span>LOGIN / REGISTER</span>
+                        <a href="/login" className="hover:underline">LOGIN / REGISTER</a>
                         <span>|</span>
                         <span>INSTALMENT PLANS</span>
                         <span>|</span>

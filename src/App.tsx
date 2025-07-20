@@ -1,6 +1,6 @@
 import {Route, Routes} from "react-router-dom";
 import {DefaultLayout} from "./view/common/DefaultLayout/DefaultLayout.tsx";
-import {Login} from "./view/pages/login/Login.tsx";
+import Login from "./view/pages/login/Login.tsx";
 
 
 function App() {
