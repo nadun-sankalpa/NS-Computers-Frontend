@@ -14,20 +14,20 @@ export default function HomePage() {
         {
             title: "GAMING LAPTOPS",
             subtitle: "THE POWER IS IN THE GAME",
-            image: "/placeholder.svg?height=400&width=600",
-            background: "bg-gradient-to-r from-orange-900 via-red-900 to-gray-900",
+            image: "/images/asnus no bg.png",
+            background: "bg-gradient-to-r from-black-900 via-yellow-900 to-black-900",
         },
         {
             title: "WORKSTATION LAPTOPS",
             subtitle: "PROFESSIONAL PERFORMANCE",
-            image: "/placeholder.svg?height=400&width=600",
-            background: "bg-gradient-to-r from-blue-900 via-purple-900 to-gray-900",
+            image: "/images/macbooks.png",
+            background: "bg-gradient-to-r from-black-900 via-blue-900 to-black-900",
         },
         {
-            title: "ULTRABOOKS",
-            subtitle: "PORTABLE POWERHOUSE",
-            image: "/placeholder.svg?height=400&width=600",
-            background: "bg-gradient-to-r from-gray-900 via-slate-900 to-black",
+            title: "GAMING LAPTOPS",
+            subtitle: "ULTIMATE GAMING EXPERIENCE",
+            image: "/images/asus tuf no bg.png",
+            background: "bg-gradient-to-r from-black-900 via-green-900 to-black",
         },
     ]
 
@@ -37,7 +37,7 @@ export default function HomePage() {
             name: "MSI Gaming Laptop",
             price: "LKR 450,000",
             originalPrice: "LKR 500,000",
-            image: "/placeholder.svg?height=200&width=300",
+            image: "/images/msi.jpg",
             rating: 4.8,
             specs: ["Intel i7", "RTX 4060", "16GB RAM", "512GB SSD"],
         },
@@ -46,18 +46,18 @@ export default function HomePage() {
             name: "ASUS ROG Strix",
             price: "LKR 380,000",
             originalPrice: "LKR 420,000",
-            image: "/placeholder.svg?height=200&width=300",
+            image: "/images/Asus rog.jpg",
             rating: 4.9,
             specs: ["AMD Ryzen 7", "RTX 4050", "16GB RAM", "1TB SSD"],
         },
         {
             id: 3,
-            name: "HP Pavilion Gaming",
+            name: "ASUS TUF Gaming",
             price: "LKR 280,000",
             originalPrice: "LKR 320,000",
-            image: "/placeholder.svg?height=200&width=300",
+            image: "/images/asus tuf2.webp",
             rating: 4.6,
-            specs: ["Intel i5", "GTX 1650", "8GB RAM", "512GB SSD"],
+            specs: ["Intel i5", "RTX 3050", "8GB RAM", "512GB SSD"],
         },
     ]
 
@@ -71,7 +71,7 @@ export default function HomePage() {
     return (
         <div className="min-h-screen bg-black text-white">
             {/* Hero Section */}
-            <section className="relative h-screen overflow-hidden">
+            <section className="relative h-screen w-screen overflow-hidden">
                 <ParticleBackground />
 
                 {/* Background Image with Overlay */}
@@ -198,7 +198,7 @@ export default function HomePage() {
                             >
                                 <div className="relative">
                                     <img
-                                        src={product.image || "/placeholder.svg"}
+                                        src={product.image || ""}
                                         alt={product.name}
                                         className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                                     />

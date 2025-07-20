@@ -70,7 +70,7 @@ export default function Navbar() {
                         <div className="hidden lg:flex items-center space-x-6">
                             <div className="text-center">
                                 <div className="text-white text-xs">[ ONLINE STORE ]</div>
-                                <div className="text-red-500 font-bold text-lg">+94 714 576 576</div>
+                                <div className="text-red-500 font-bold text-lg">+94 762 099 693</div>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <span className="text-white text-sm">Follow Us:</span>
