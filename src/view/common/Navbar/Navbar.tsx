@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { ShoppingCart, Menu, X, Facebook, Instagram } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useState, useEffect } from "react"
+import { Menu, X, Facebook, Instagram } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -13,18 +13,18 @@ export default function Navbar() {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 50)
         }
-        window.addEventListener('scroll', handleScroll)
-        return () => window.removeEventListener('scroll', handleScroll)
+        window.addEventListener("scroll", handleScroll)
+        return () => window.removeEventListener("scroll", handleScroll)
     }, [])
 
     const navItems = [
-        { name: 'HOME', href: '#', active: true },
-        { name: 'ABOUT US', href: '#' },
-        { name: 'ALL PRODUCTS', href: '#', hasDropdown: true },
-        { name: 'SERVICES', href: '#' },
-        { name: 'PAYMENT METHODS', href: '#' },
-        { name: 'GALLERY', href: '#' },
-        { name: 'CONTACT US', href: '#' }
+        { name: "HOME", href: "#", active: true },
+        { name: "ABOUT US", href: "#" },
+        { name: "ALL PRODUCTS", href: "#", hasDropdown: true },
+        { name: "SERVICES", href: "#" },
+        { name: "PAYMENT METHODS", href: "#" },
+        { name: "GALLERY", href: "#" },
+        { name: "CONTACT US", href: "#" },
     ]
 
     return (
@@ -33,37 +33,36 @@ export default function Navbar() {
             <div className="bg-gray-900 text-white text-sm py-2 px-4">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="text-center flex-1">
-                        {'All prices displayed are '}
+                        {"All prices displayed are "}
                         <span className="font-bold text-red-500">EXCLUSIVE</span>
-                        {' of VAT.'}
+                        {" of VAT."}
                     </div>
                     <div className="hidden md:flex items-center space-x-4 text-xs">
                         <span>LOGIN / REGISTER</span>
                         <span>|</span>
                         <span>INSTALMENT PLANS</span>
                         <span>|</span>
-                        <div className="flex items-center space-x-1 cursor-pointer hover:text-red-500 transition-colors">
-                            <ShoppingCart className="w-4 h-4" />
-                            <span>MY CART</span>
-                        </div>
+                        <span>MY CART</span>
                     </div>
                 </div>
             </div>
 
             {/* Main Navbar */}
-            <nav className={`bg-black/95 backdrop-blur-md transition-all duration-300 ${
-                isScrolled ? 'shadow-lg shadow-red-500/20' : ''
-            }`}>
+            <nav
+                className={`bg-black/95 backdrop-blur-md transition-all duration-300 ${
+                    isScrolled ? "shadow-lg shadow-red-500/20" : ""
+                }`}
+            >
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between py-4">
                         {/* Logo */}
                         <div className="flex items-center space-x-4">
                             <div className="text-red-500 font-bold text-2xl">
-                                NS-COMPUTERS<sup className="text-xs">®</sup>
+                                NS-Computers<sup className="text-xs">®</sup>
                             </div>
                             <div className="hidden lg:block">
-                                <div className="text-white font-semibold">NS ONLINE STORE</div>
-                                <div className="text-gray-400 text-xs">NS-COMPUTERS | GALLE LAPTOP HOUSE | MARS COMPUTERS</div>
+                                <div className="text-white font-semibold">NS-COMPUTERS ONLINE STORE</div>
+                                <div className="text-gray-400 text-xs">GAMING LAPTOPS | WORKSTATIONS | CUSTOM BUILDS</div>
                             </div>
                         </div>
 
@@ -92,7 +91,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Navigation Menu */}
-                    <div className={`${isMenuOpen ? 'block' : 'hidden'} lg:block border-t border-gray-800 lg:border-t-0`}>
+                    <div className={`${isMenuOpen ? "block" : "hidden"} lg:block border-t border-gray-800 lg:border-t-0`}>
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-4 lg:py-2">
                             <div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-8">
                                 {navItems.map((item, index) => (
@@ -100,7 +99,7 @@ export default function Navbar() {
                                         key={index}
                                         href={item.href}
                                         className={`relative group px-3 py-2 text-sm font-medium transition-all duration-300 hover:text-red-500 ${
-                                            item.active ? 'text-red-500' : 'text-white'
+                                            item.active ? "text-red-500" : "text-white"
                                         }`}
                                     >
                                         {item.name}

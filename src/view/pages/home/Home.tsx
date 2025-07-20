@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import ParticleBackground from "./particle-background"
 
+
 export default function HomePage() {
     const [currentSlide, setCurrentSlide] = useState(0)
 
@@ -181,16 +182,15 @@ export default function HomePage() {
             </section>
 
             {/* Latest Laptops Section */}
-            <section className="py-16 bg-gray-100 text-black">
+            <section className="py-16 bg-gray-50 text-black">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-12">
-                        <h2 className="text-4xl lg:text-5xl font-bold mb-4">LATEST LAPTOPS IN SRI LANKA</h2>
+                        <h2 className="text-4xl font-bold mb-4">LATEST LAPTOPS IN SRI LANKA</h2>
                         <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-full font-semibold">
                             PRICE NEGOTIABLE | ගණන් ගැන සාකච්ඡා කර ගන්න
                         </div>
                     </div>
-
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {featuredProducts.map((product) => (
                             <Card
                                 key={product.id}
@@ -239,6 +239,9 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+
+            {/* Footer */}
+
         </div>
     )
 }
