@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Menu, X, Facebook, Instagram } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Link } from "react-router-dom"
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -19,12 +20,12 @@ export default function Navbar() {
 
     const navItems = [
         { name: "HOME", href: "#", active: true },
-        { name: "ABOUT US", href: "#" },
+        { name: "ABOUT US", href: "/about" },
         { name: "ALL PRODUCTS", href: "#", hasDropdown: true },
         { name: "SERVICES", href: "#" },
         { name: "PAYMENT METHODS", href: "#" },
         { name: "GALLERY", href: "#" },
-        { name: "CONTACT US", href: "#" },
+        { name: "CONTACT US", href: "/Contact" },
     ]
 
     return (
@@ -95,19 +96,25 @@ export default function Navbar() {
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-4 lg:py-2">
                             <div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-8">
                                 {navItems.map((item, index) => (
-                                    <a
+                                    <Link
                                         key={index}
-                                        href={item.href}
+                                        to={item.href}
                                         className={`relative group px-3 py-2 text-sm font-medium transition-all duration-300 hover:text-red-500 ${
                                             item.active ? "text-red-500" : "text-white"
                                         }`}
+                                        onClick={() => {
+                                            // Close mobile menu when a link is clicked
+                                            if (isMenuOpen) {
+                                                setIsMenuOpen(false);
+                                            }
+                                        }}
                                     >
                                         {item.name}
                                         {item.active && (
                                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 animate-pulse"></div>
                                         )}
                                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-                                    </a>
+                                    </Link>
                                 ))}
                             </div>
 
