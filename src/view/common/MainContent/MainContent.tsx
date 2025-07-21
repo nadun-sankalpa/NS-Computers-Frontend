@@ -8,6 +8,7 @@ import LoginPage from "../../pages/login/Login.tsx";
 
 import {ShoppingCart} from "../../pages/ShoppingCart/ShoppingCart.tsx";
 import ServicesPage from "@/view/pages/Service/services.tsx";
+
 export function MainContent() {
     return (
         <section>
