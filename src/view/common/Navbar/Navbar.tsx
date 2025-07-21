@@ -19,13 +19,13 @@ export default function Navbar() {
     }, [])
 
     const navItems = [
-        { name: "HOME", href: "#", active: true },
+        { name: "HOME", href: "/home", active: true },
         { name: "ABOUT US", href: "/about" },
         { name: "ALL PRODUCTS", href: "#", hasDropdown: true },
-        { name: "SERVICES", href: "#" },
-        { name: "PAYMENT METHODS", href: "#" },
+        { name: "SERVICES", href: "/services" },
+        { name: "PAYMENT METHODS", href: "/payment-methods" },
         { name: "GALLERY", href: "#" },
-        { name: "CONTACT US", href: "/Contact" },
+        { name: "CONTACT US", href: "/contact" },
     ]
 
     return (
