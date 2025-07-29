@@ -24,6 +24,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const currentUser = api.authService.getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
+      // Store in localStorage for immediate access
+      localStorage.setItem('user', JSON.stringify(currentUser));
+      console.log('Auth initialized with user:', currentUser);
+    } else {
+      console.log('No user found on initialization');
     }
     setLoading(false);
   }, []);
@@ -31,14 +36,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (credentials: api.LoginCredentials) => {
     try {
       const userData = await api.authService.login(credentials);
+      console.log('Login successful - userData:', userData);
+      
+      // First update the state and localStorage
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       
-      // Redirect based on role
+      console.log('User role from login:', userData.role);
+      
+      // Force a small delay to ensure state is updated
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      // Then navigate based on role
       if (userData.role === 'admin') {
-        navigate('/admin/dashboard');
+        console.log('Navigating to admin dashboard');
+        window.location.href = '/admin-dashboard'; // Force full page reload to ensure clean state
       } else {
-        navigate('/');
+        console.log('Navigating to home');
+        window.location.href = '/home'; // Force full page reload to ensure clean state
       }
     } catch (error) {
       throw error;

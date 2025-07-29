@@ -91,7 +91,7 @@ export default function LoginPage() {
         if (userRole === 'admin') {
           navigate('/admin-dashboard'); // Navigate to admin dashboard
         } else {
-          navigate('/'); // Navigate to home page for other roles (e.g., customer)
+          navigate('/home'); // Navigate to home page for other roles (e.g., customer)
         }
 
       } else {
