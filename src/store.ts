@@ -1,15 +1,15 @@
+// src/store/store.ts
 import { configureStore } from '@reduxjs/toolkit';
-
-// This is a basic store setup. You should replace the empty reducer with your actual reducers.
-// For example: import counterReducer from './features/counter/counterSlice';
+import productReducer from './slices/productSlice'; // Import your product slice
+import cartReducer from './slices/cartSlice'; // Assuming you have a cartSlice
 
 export const store = configureStore({
   reducer: {
-    // Add your reducers here
-    // For example: counter: counterReducer,
+    product: productReducer,
+    cart: cartReducer, // Include your cart reducer
+    // ... add other reducers here as your app grows
   },
 });
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

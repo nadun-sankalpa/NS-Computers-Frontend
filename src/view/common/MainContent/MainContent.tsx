@@ -5,8 +5,9 @@ import About from "../../pages/About/About.tsx";
 import Contact from "../../pages/Contact/Contact.tsx";
 import PaymentMethodsPage from "../../pages/PaymentMethod/PaymentMethods";
 import { ShoppingCart } from "../../pages/ShoppingCart/ShoppingCart.tsx";
-import ServicesPage from "@/view/pages/Service/services.tsx";
-import ProductsPage from "@/view/common/Product/Product.tsx";
+import ServicesPage from "../../pages/Service/services";
+import { ProductCard } from "../Product/ProductCard.tsx";
+
 
 export function MainContent() {
     return (
@@ -16,7 +17,7 @@ export function MainContent() {
                     <Route path="/home" element={<Home />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
-                    <Route path="/product" element={<ProductsPage />} />
+                    <Route path="/product" element={<ProductCard/>} />
                     <Route path="/services" element={<ServicesPage />} />
                     <Route path="/shopping-cart" element={<ShoppingCart />} />
                     <Route path="/payment-methods" element={<PaymentMethodsPage />} />

@@ -1,9 +1,13 @@
+// src/store/store.ts
 import { configureStore } from '@reduxjs/toolkit';
-import userReducer from '@/slices/userSlice'; // ✅ points to the correct reducer location
+import productReducer from './slices/productsSlice.ts'; // Import your product slice
+import cartReducer from './slices/cartSlice.ts'; // Assuming you have a cartSlice
 
 export const store = configureStore({
     reducer: {
-        user: userReducer, // ✅ this must be a valid reducer function
+        product: productReducer,
+        cart: cartReducer, // Include your cart reducer
+        // ... add other reducers here as your app grows
     },
 });
 
