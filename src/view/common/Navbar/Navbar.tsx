@@ -21,7 +21,7 @@ export default function Navbar() {
     const navItems = [
         { name: "HOME", href: "/home", active: true },
         { name: "ABOUT US", href: "/about" },
-        { name: "ALL PRODUCTS", href: "#", hasDropdown: true },
+        { name: "ALL PRODUCTS", href: "/products", hasDropdown: true },
         { name: "SERVICES", href: "/services" },
         { name: "PAYMENT METHODS", href: "/payment-methods" },
         { name: "CONTACT US", href: "/contact" },

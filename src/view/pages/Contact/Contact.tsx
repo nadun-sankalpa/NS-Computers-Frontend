@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import {
     Mail,
     Phone,
@@ -22,12 +20,16 @@ import {
     Youtube,
     ArrowRight,
     Star,
+    Briefcase,
+    Tag,
+    XCircle,
+    User
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import ParticleBackground from "../home/particle-background"
+import ParticleBackground from "../home/particle-background.tsx" // FIX: Added .tsx extension to resolve import error
 
 interface FormData {
     name: string
@@ -35,7 +37,7 @@ interface FormData {
     phone: string
     subject: string
     message: string
-    category: string
+    category: 'Sales' | 'Technical Support' | 'Warranty Claims' | 'Custom Builds' | 'General Inquiry' | ''; // Updated category type
 }
 
 interface FormErrors {
@@ -49,13 +51,24 @@ export default function ContactPage() {
         phone: "",
         subject: "",
         message: "",
-        category: "general",
+        category: "", // Changed default to empty for validation
     })
     const [errors, setErrors] = useState<FormErrors>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
+    const [submitError, setSubmitError] = useState<string | null>(null); // State for API submission errors
     const [focusedField, setFocusedField] = useState<string | null>(null)
     const formRef = useRef<HTMLFormElement>(null)
+
+    // Categories matching backend enum
+    const categories = [
+        { value: "General Inquiry", label: "General Inquiry", icon: MessageSquare, time: "Anytime" },
+        { value: "Sales", label: "Sales Inquiry", icon: Briefcase, time: "9AM - 8PM" },
+        { value: "Technical Support", label: "Technical Support", icon: Headphones, time: "24/7" },
+        { value: "Warranty Claims", label: "Warranty Claims", icon: Shield, time: "Mon - Fri" },
+        { value: "Custom Builds", label: "Custom Builds", icon: Users, time: "By Appointment" }, // Using Users for Custom Builds, as Zap might not fit
+    ];
+
 
     const contactInfo = [
         {
@@ -110,7 +123,7 @@ export default function ContactPage() {
             availability: "Mon-Fri",
         },
         {
-            icon: Zap,
+            icon: Zap, // Using Zap for Sales Inquiry as it was in your original UI for 'Sales Inquiry'
             title: "Sales Inquiry",
             description: "Product information and pricing",
             availability: "9AM-8PM",
@@ -150,15 +163,40 @@ export default function ContactPage() {
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {}
 
-        if (!formData.name.trim()) newErrors.name = "Name is required"
-        if (!formData.email.trim()) {
-            newErrors.email = "Email is required"
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = "Email is invalid"
+        if (!formData.name.trim()) {
+            newErrors.name = "Name is required";
+        } else if (formData.name.trim().length < 2) {
+            newErrors.name = "Name must be at least 2 characters long";
         }
-        if (!formData.phone.trim()) newErrors.phone = "Phone number is required"
-        if (!formData.subject.trim()) newErrors.subject = "Subject is required"
-        if (!formData.message.trim()) newErrors.message = "Message is required"
+
+        // FIX: Updated email regex for more robust client-side validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!formData.email.trim()) {
+            newErrors.email = "Email is required";
+        } else if (!emailRegex.test(formData.email.trim())) { // Added .trim() here as well
+            newErrors.email = "Please enter a valid email address";
+        }
+
+        // Phone is optional, but if provided, validate length
+        if (formData.phone.trim() && formData.phone.trim().length < 7) {
+            newErrors.phone = "Phone number must be at least 7 digits";
+        }
+
+        if (!formData.category) { // Check if a category is selected
+            newErrors.category = "Please select a category";
+        }
+
+        if (!formData.subject.trim()) {
+            newErrors.subject = "Subject is required";
+        } else if (formData.subject.trim().length < 3) {
+            newErrors.subject = "Subject must be at least 3 characters long";
+        }
+
+        if (!formData.message.trim()) {
+            newErrors.message = "Message is required";
+        } else if (formData.message.trim().length < 10) {
+            newErrors.message = "Message must be at least 10 characters long";
+        }
 
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
@@ -166,31 +204,60 @@ export default function ContactPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!validateForm()) return
+        if (!validateForm()) {
+            setSubmitError("Please correct the errors in the form.");
+            return;
+        }
 
         setIsSubmitting(true)
+        setSubmitError(null); // Clear any previous API errors
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 2000))
+        // Log the form data before sending
+        console.log("Submitting form data:", JSON.stringify(formData));
 
-        setIsSubmitting(false)
-        setIsSubmitted(true)
-        setFormData({
-            name: "",
-            email: "",
-            phone: "",
-            subject: "",
-            message: "",
-            category: "general",
-        })
+        try {
+            // Updated the URL to match the user's specified backend endpoint
+            const response = await fetch("http://localhost:3000/api/contact/save-contact", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
 
-        setTimeout(() => setIsSubmitted(false), 5000)
+            const data = await response.json();
+
+            if (response.ok) {
+                setIsSubmitted(true);
+                setFormData({ // Clear form after successful submission
+                    name: "",
+                    email: "",
+                    phone: "",
+                    subject: "",
+                    message: "",
+                    category: "", // Reset category to empty
+                });
+                setTimeout(() => setIsSubmitted(false), 5000); // Hide success message after 5 seconds
+            } else {
+                // Handle backend validation errors or other server errors
+                setSubmitError(data.error || data.message || "Failed to send message. Please try again.");
+            }
+        } catch (error) {
+            console.error("Contact form submission error:", error);
+            setSubmitError("Network error. Please check your connection and try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
-    const handleInputChange = (field: string, value: string) => {
-        setFormData((prev) => ({ ...prev, [field]: value }))
-        if (errors[field]) {
-            setErrors((prev) => ({ ...prev, [field]: "" }))
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value as any })); // Cast to any to handle category type
+        if (errors[name]) {
+            setErrors((prev) => ({ ...prev, [name]: "" }));
+        }
+        if (submitError) { // Clear general submit error on any input change
+            setSubmitError(null);
         }
     }
 
@@ -280,18 +347,26 @@ export default function ContactPage() {
                                     <p className="text-green-400">Message sent successfully! We'll get back to you soon.</p>
                                 </div>
                             )}
+                            {submitError && (
+                                <div className="bg-red-600/20 border border-red-500/50 rounded-lg p-4 flex items-center space-x-3 animate-bounce">
+                                    <XCircle className="w-6 h-6 text-red-500" />
+                                    <p className="text-red-400">{submitError}</p>
+                                </div>
+                            )}
 
                             <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div className="relative">
+                                        <User className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${focusedField === "name" ? "text-red-500" : "text-gray-400"}`} />
                                         <Input
                                             type="text"
+                                            name="name"
                                             placeholder="Your Name"
                                             value={formData.name}
-                                            onChange={(e) => handleInputChange("name", e.target.value)}
+                                            onChange={handleInputChange}
                                             onFocus={() => setFocusedField("name")}
                                             onBlur={() => setFocusedField(null)}
-                                            className={`bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 ${
+                                            className={`pl-12 bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 ${
                                                 focusedField === "name" ? "border-red-500 shadow-lg shadow-red-500/20" : ""
                                             } ${errors.name ? "border-red-500" : ""}`}
                                         />
@@ -304,14 +379,16 @@ export default function ContactPage() {
                                     </div>
 
                                     <div className="relative">
+                                        <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${focusedField === "email" ? "text-red-500" : "text-gray-400"}`} />
                                         <Input
                                             type="email"
+                                            name="email"
                                             placeholder="Your Email"
                                             value={formData.email}
-                                            onChange={(e) => handleInputChange("email", e.target.value)}
+                                            onChange={handleInputChange}
                                             onFocus={() => setFocusedField("email")}
                                             onBlur={() => setFocusedField(null)}
-                                            className={`bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 ${
+                                            className={`pl-12 bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 ${
                                                 focusedField === "email" ? "border-red-500 shadow-lg shadow-red-500/20" : ""
                                             } ${errors.email ? "border-red-500" : ""}`}
                                         />
@@ -326,14 +403,16 @@ export default function ContactPage() {
 
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div className="relative">
+                                        <Phone className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${focusedField === "phone" ? "text-red-500" : "text-gray-400"}`} />
                                         <Input
                                             type="tel"
-                                            placeholder="Phone Number"
+                                            name="phone"
+                                            placeholder="Phone Number (Optional)"
                                             value={formData.phone}
-                                            onChange={(e) => handleInputChange("phone", e.target.value)}
+                                            onChange={handleInputChange}
                                             onFocus={() => setFocusedField("phone")}
                                             onBlur={() => setFocusedField(null)}
-                                            className={`bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 ${
+                                            className={`pl-12 bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 ${
                                                 focusedField === "phone" ? "border-red-500 shadow-lg shadow-red-500/20" : ""
                                             } ${errors.phone ? "border-red-500" : ""}`}
                                         />
@@ -346,29 +425,42 @@ export default function ContactPage() {
                                     </div>
 
                                     <div className="relative">
+                                        <Tag className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${focusedField === "category" ? "text-red-500" : "text-gray-400"}`} />
                                         <select
+                                            name="category"
                                             value={formData.category}
-                                            onChange={(e) => handleInputChange("category", e.target.value)}
-                                            className="w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 focus:border-red-500 focus:outline-none transition-colors"
+                                            onChange={handleInputChange}
+                                            onFocus={() => setFocusedField("category")}
+                                            onBlur={() => setFocusedField(null)}
+                                            className={`w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 pl-12 focus:border-red-500 focus:outline-none transition-colors ${
+                                                focusedField === "category" ? "border-red-500 shadow-lg shadow-red-500/20" : ""
+                                            } ${errors.category ? "border-red-500" : ""}`}
                                         >
-                                            <option value="general">General Inquiry</option>
-                                            <option value="sales">Sales</option>
-                                            <option value="support">Technical Support</option>
-                                            <option value="warranty">Warranty</option>
-                                            <option value="custom">Custom Build</option>
+                                            <option value="" disabled>Select Category</option>
+                                            {categories.map((cat) => (
+                                                <option key={cat.value} value={cat.value}>{cat.label}</option>
+                                            ))}
                                         </select>
+                                        {errors.category && (
+                                            <div className="flex items-center space-x-1 mt-1 text-red-400 text-sm">
+                                                <AlertCircle className="w-4 h-4" />
+                                                <span>{errors.category}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 <div className="relative">
+                                    <MessageSquare className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${focusedField === "subject" ? "text-red-500" : "text-gray-400"}`} />
                                     <Input
                                         type="text"
+                                        name="subject"
                                         placeholder="Subject"
                                         value={formData.subject}
-                                        onChange={(e) => handleInputChange("subject", e.target.value)}
+                                        onChange={handleInputChange}
                                         onFocus={() => setFocusedField("subject")}
                                         onBlur={() => setFocusedField(null)}
-                                        className={`bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 ${
+                                        className={`pl-12 bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 ${
                                             focusedField === "subject" ? "border-red-500 shadow-lg shadow-red-500/20" : ""
                                         } ${errors.subject ? "border-red-500" : ""}`}
                                     />
@@ -382,13 +474,14 @@ export default function ContactPage() {
 
                                 <div className="relative">
                                     <Textarea
+                                        name="message"
                                         placeholder="Your Message"
                                         rows={6}
                                         value={formData.message}
-                                        onChange={(e) => handleInputChange("message", e.target.value)}
+                                        onChange={handleInputChange}
                                         onFocus={() => setFocusedField("message")}
                                         onBlur={() => setFocusedField(null)}
-                                        className={`bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 resize-none ${
+                                        className={`bg-gray-800 border-gray-700 text-white placeholder-gray-400 transition-all duration-300 resize-none pl-4 ${
                                             focusedField === "message" ? "border-red-500 shadow-lg shadow-red-500/20" : ""
                                         } ${errors.message ? "border-red-500" : ""}`}
                                     />
