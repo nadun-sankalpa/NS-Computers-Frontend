@@ -1,19 +1,18 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Github, Chrome, Facebook } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import AuthBackground from "./auth-background"
-import { Link, useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Github, Chrome, Facebook } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import AuthBackground from "./auth-background";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LoginForm {
-  email: string
-  password: string
-  rememberMe: boolean
+  email: string;
+  password: string;
+  rememberMe: boolean;
 }
 
 export default function LoginPage() {
@@ -21,123 +20,95 @@ export default function LoginPage() {
     email: "",
     password: "",
     rememberMe: false,
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isNavigating, setIsNavigating] = useState(false)
-  const [focusedField, setFocusedField] = useState<string | null>(null)
-  const [isVisible, setIsVisible] = useState(false)
-  const [errors, setErrors] = useState<{ [key: string]: string | null }>({}) // Allow null for API errors
-  const navigate = useNavigate()
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   useEffect(() => {
-    setIsVisible(true)
-  }, [])
+    setIsVisible(true);
+  }, []);
 
   const validateForm = () => {
-    const newErrors: { [key: string]: string } = {}
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.email) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid"
+      newErrors.email = "Email is invalid";
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required"
-    } else if (formData.password.length < 6) { // Minimum password length validation
-      newErrors.password = "Password must be at least 6 characters"
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!validateForm()) {
-      return // Stop if frontend validation fails
+      return;
     }
 
-    setIsLoading(true)
-    setErrors({}) // Clear previous errors
+    setIsLoading(true);
+    setErrors({});
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/login", { // Correct login endpoint
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      })
+      const credentials = {
+        email: formData.email,
+        password: formData.password
+      };
 
-      const data = await response.json()
+      await login(credentials);
+      // Navigation is now handled by AuthContext after successful login
+    } catch (error: any) {
+      let errorMessage = "An unexpected error occurred. Please try again.";
 
-      if (response.ok) {
-        // Assuming your backend returns { accessToken, refreshToken, user: { role, ... } }
-        const userRole = data.user?.role; // Safely access user role
-
-        // Store tokens (e.g., in localStorage or a state management solution)
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        localStorage.setItem('userRole', userRole); // Store role for persistence if needed
-
-        console.log("Login successful:", data);
-
-        // Conditional navigation based on role
-        if (userRole === 'admin') {
-          navigate('/admin-dashboard'); // Navigate to admin dashboard
-        } else {
-          navigate('/home'); // Navigate to home page for other roles (e.g., customer)
-        }
-
-      } else {
-        // Handle backend errors (e.g., invalid credentials)
-        setErrors({ api: data.message || "Login failed. Please check your credentials." });
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      setErrors({ api: "Network error or server is unreachable. Please try again later." });
+
+      setErrors({ api: errorMessage });
     } finally {
       setIsLoading(false);
     }
-  }
-
-  const handleNavigateToSignup = () => {
-    setIsNavigating(true)
-    setTimeout(() => {
-      navigate('/signup')
-    }, 300)
-  }
+  };
 
   const handleInputChange = (field: keyof LoginForm, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: null })) // Clear specific field error
+      setErrors((prev) => ({ ...prev, [field]: null }));
     }
     if (errors.api) {
-      setErrors((prev) => ({ ...prev, api: null })); // Clear API error on input change
+      setErrors((prev) => ({ ...prev, api: null }));
     }
-  }
+  };
 
   const socialLogins = [
     { icon: Chrome, name: "Google", color: "hover:bg-red-600" },
     { icon: Facebook, name: "Facebook", color: "hover:bg-blue-600" },
     { icon: Github, name: "GitHub", color: "hover:bg-gray-600" },
-  ]
+  ];
 
   return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4 relative overflow-hidden">
         <AuthBackground />
 
-        {/* Gradient Overlays */}
         <div className="absolute inset-0 bg-gradient-to-br from-red-900/20 via-black to-blue-900/20 z-0"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-red-500/5 to-transparent z-0"></div>
 
-        {/* Animated Grid */}
         <div className="absolute inset-0 opacity-10 z-0">
           <div
               className="w-full h-full"
@@ -159,16 +130,14 @@ export default function LoginPage() {
               }`}
           >
             <CardContent className="p-8">
-              {/* Header */}
               <div className="text-center mb-8">
                 <div className="mb-4">
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-red-200 to-red-500 bg-clip-text text-transparent">
                     Welcome Back
                   </h1>
-                  <p className="text-gray-400 mt-2">Sign in to your nS-Computers account</p>
+                  <p className="text-gray-400 mt-2">Sign in to your account</p>
                 </div>
 
-                {/* Logo Animation */}
                 <div className="relative mx-auto w-16 h-16 mb-4">
                   <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 rounded-full animate-pulse"></div>
                   <div className="relative z-10 w-full h-full bg-black rounded-full flex items-center justify-center">
@@ -177,7 +146,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Social Login */}
               <div className="mb-6">
                 <div className="grid grid-cols-3 gap-3">
                   {socialLogins.map((social, index) => (
@@ -202,9 +170,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Login Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email Field */}
                 <div className="relative">
                   <div className="relative">
                     <Mail
@@ -227,7 +193,6 @@ export default function LoginPage() {
                   {errors.email && <p className="text-red-400 text-sm mt-1 animate-bounce">{errors.email}</p>}
                 </div>
 
-                {/* Password Field */}
                 <div className="relative">
                   <div className="relative">
                     <Lock
@@ -257,7 +222,6 @@ export default function LoginPage() {
                   {errors.password && <p className="text-red-400 text-sm mt-1 animate-bounce">{errors.password}</p>}
                 </div>
 
-                {/* Remember Me & Forgot Password */}
                 <div className="flex items-center justify-between">
                   <label className="flex items-center space-x-2 cursor-pointer group">
                     <input
@@ -273,12 +237,10 @@ export default function LoginPage() {
                   </Link>
                 </div>
 
-                {/* Display general API error */}
                 {errors.api && (
                     <p className="text-red-400 text-sm text-center animate-bounce">{errors.api}</p>
                 )}
 
-                {/* Submit Button */}
                 <Button
                     type="submit"
                     disabled={isLoading}
@@ -298,37 +260,20 @@ export default function LoginPage() {
                 </Button>
               </form>
 
-              {/* Sign Up Link */}
               <div className="text-center mt-6">
                 <p className="text-gray-400">
                   Don't have an account?{" "}
-                  <button
-                      onClick={handleNavigateToSignup}
-                      disabled={isNavigating}
-                      className="text-red-400 hover:text-red-300 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  <Link
+                      to="/signup"
+                      className="text-red-400 hover:text-red-300 font-semibold transition-colors"
                   >
-                    {isNavigating ? (
-                        <span className="flex items-center justify-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-red-400 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Redirecting...
-                      </span>
-                    ) : 'Sign up'}
-                  </button>
+                    Sign up
+                  </Link>
                 </p>
               </div>
             </CardContent>
           </Card>
-
-          {/* Floating Elements */}
-          <div className="absolute -top-10 -left-10 w-20 h-20 bg-red-500/20 rounded-full blur-xl animate-pulse"></div>
-          <div
-              className="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500/20 rounded-full blur-xl animate-pulse"
-              style={{ animationDelay: "1s" }}
-          ></div>
         </div>
       </div>
-  )
+  );
 }

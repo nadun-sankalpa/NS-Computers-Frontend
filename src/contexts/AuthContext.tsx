@@ -19,41 +19,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Debug logs
+  console.log('AuthProvider - Current user state:', user);
+  console.log('AuthProvider - Loading state:', loading);
+
   useEffect(() => {
-    // Check if user is already logged in
-    const currentUser = api.authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-      // Store in localStorage for immediate access
-      localStorage.setItem('user', JSON.stringify(currentUser));
-      console.log('Auth initialized with user:', currentUser);
-    } else {
-      console.log('No user found on initialization');
-    }
-    setLoading(false);
+    const checkAuth = async () => {
+      console.log('AuthProvider - Checking authentication status');
+      try {
+        const currentUser = api.authService.getCurrentUser();
+        console.log('AuthProvider - Retrieved user from storage:', currentUser);
+
+        if (currentUser) {
+          console.log('AuthProvider - User is authenticated');
+          setUser(currentUser);
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        } else {
+          console.log('AuthProvider - No user found in storage');
+        }
+      } catch (error) {
+        console.error('AuthProvider - Error checking auth:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
+
+  // Add isAuthenticated and isAdmin getters
+  const isAuthenticated = !!user;
+  const isAdmin = user?.role === 'admin';
 
   const login = async (credentials: api.LoginCredentials) => {
     try {
       const userData = await api.authService.login(credentials);
-      console.log('Login successful - userData:', userData);
-      
-      // First update the state and localStorage
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
-      
-      console.log('User role from login:', userData.role);
-      
-      // Force a small delay to ensure state is updated
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
-      // Then navigate based on role
+
+      // Redirect based on role
       if (userData.role === 'admin') {
-        console.log('Navigating to admin dashboard');
-        window.location.href = '/admin-dashboard'; // Force full page reload to ensure clean state
+        navigate('/admin-dashboard');
       } else {
-        console.log('Navigating to home');
-        window.location.href = '/home'; // Force full page reload to ensure clean state
+        navigate('/home');
       }
     } catch (error) {
       throw error;
@@ -65,12 +73,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const newUser = await api.authService.signup(userData);
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
-      
+
       // Redirect based on role
       if (newUser.role === 'admin') {
-        navigate('/admin/dashboard');
+        navigate('/admin-dashboard');
       } else {
-        navigate('/');
+        navigate('/home');
       }
     } catch (error) {
       throw error;
@@ -80,6 +88,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     api.authService.logout();
     setUser(null);
+    localStorage.removeItem('user');
     navigate('/login');
   };
 
@@ -88,12 +97,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     signup,
     logout,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
+    isAuthenticated,
+    isAdmin,
     loading,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  console.log('AuthProvider - Providing context value:', value);
+
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {

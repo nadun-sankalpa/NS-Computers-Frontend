@@ -1,14 +1,71 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { ChevronLeft, ChevronRight, Star, Shield, Truck, Headphones } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { AuthNotification } from "@/components/ui"
+import { useAuth } from "@/contexts/AuthContext"
 import ParticleBackground from "./particle-background"
 
-
 export default function HomePage() {
+    const { isAuthenticated, user, loading } = useAuth()
+    const [showNotification, setShowNotification] = useState(false)
     const [currentSlide, setCurrentSlide] = useState(0)
+    const [isInitialLoad, setIsInitialLoad] = useState(true)
+
+    // Show notification on login
+    useEffect(() => {
+        // Skip the initial render
+        if (isInitialLoad) {
+            console.log('Skipping initial render');
+            setIsInitialLoad(false);
+            return;
+        }
+
+        // Only run this effect after initial auth check is complete
+        if (loading) {
+            console.log('Auth is still loading...');
+            return;
+        }
+        
+        console.log('Auth state changed:', { isAuthenticated, user });
+        
+        if (isAuthenticated && user) {
+            console.log('User is authenticated, showing notification...');
+            
+            // Reset the notification flag if this is a new login
+            const lastLogin = sessionStorage.getItem('lastLogin');
+            const currentTime = new Date().getTime();
+            
+            // If it's a new login (no lastLogin or more than 1 minute ago)
+            if (!lastLogin || (currentTime - parseInt(lastLogin)) > 60000) {
+                console.log('New login detected, showing notification');
+                setShowNotification(true);
+                
+                // Auto-hide after 5 seconds
+                const timer = setTimeout(() => {
+                    console.log('Auto-hiding notification');
+                    setShowNotification(false);
+                }, 5000);
+                
+                // Store the current login time
+                sessionStorage.setItem('lastLogin', currentTime.toString());
+                
+                return () => clearTimeout(timer);
+            } else {
+                console.log('Recent login detected, not showing notification again');
+            }
+        } else {
+            console.log('User is not authenticated, resetting notification state');
+            setShowNotification(false);
+        }
+    }, [isAuthenticated, user, loading, isInitialLoad]);
+
+    const handleNotificationClose = useCallback(() => {
+        console.log('Manually closing notification');
+        setShowNotification(false);
+    }, []);
 
     const heroSlides = [
         {
@@ -69,7 +126,13 @@ export default function HomePage() {
     }, [heroSlides.length])
 
     return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="relative min-h-screen bg-black text-white">
+            {/* Auth Notification */}
+            <AuthNotification 
+                visible={showNotification}
+                onClose={handleNotificationClose}
+            />
+            
             {/* Hero Section */}
             <section className="relative h-screen w-screen overflow-hidden">
                 <ParticleBackground />

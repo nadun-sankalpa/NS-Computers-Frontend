@@ -106,6 +106,14 @@ function AdminNavbar({
     selectedTimeRange: string
     setSelectedTimeRange: (range: string) => void
 }) {
+    const { logout } = useAuth(); // Access logout from AuthContext
+    const navigate = useNavigate(); // Access navigate for logout redirection
+
+    const handleLogout = () => {
+        logout(); // Call the logout function from AuthContext
+        navigate('/login'); // Redirect to login page after logout
+    };
+
     return (
         <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
             <div className="px-6 py-4">
@@ -140,10 +148,7 @@ function AdminNavbar({
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                                logout();
-                                navigate('/');
-                            }}
+                            onClick={handleLogout} // Use the new handleLogout function
                             className="border-gray-600 text-gray-300 hover:border-red-500 hover:text-red-400 bg-transparent"
                         >
                             <LogOut className="w-4 h-4 mr-2" />
@@ -330,7 +335,7 @@ function AdminFooter() {
 export default function AdminDashboard() {
     const { logout } = useAuth();
     const navigate = useNavigate();
-    
+
     const [activeTab, setActiveTab] = useState("overview")
     const [isLoading, setIsLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")

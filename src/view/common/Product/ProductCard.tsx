@@ -12,10 +12,11 @@ import type { AppDispatch, RootState } from "../../../store/store"
 import { addItemToCart } from "../../../slices/cartSlice"
 
 type ProductCardProps = {
-    data: ProductData
+    data: ProductData;
+    onAddToCart?: () => void;
 }
 
-export function ProductCard({ data }: ProductCardProps) {
+export function ProductCard({ data, onAddToCart }: ProductCardProps) {
     // Debug log to check the incoming data
     console.log('ProductCard data:', data);
 
@@ -27,21 +28,52 @@ export function ProductCard({ data }: ProductCardProps) {
 
     // Check if the item is already in the cart
     const cartItem = useSelector((state: RootState) =>
-        state.cart.items.find(item => item.product._id === data._id)
+        state.cart.items.find(item => item.id === data.id || item._id === data.id || item.id === data._id)
     )
 
-    const handleAddToCart = async () => {
-        if (data.stock <= 0) return // Prevent adding out of stock items
+    const handleAddToCart = () => {
+        if (data.stock <= 0) return; // Prevent adding out of stock items
 
-        setIsAddingToCart(true)
+        setIsAddingToCart(true);
+        
         try {
-            await dispatch(addItemToCart(data)).unwrap()
-            // Success - you could add a toast notification here
+            // Get the product image from the data or use the getProductImage function
+            const productImage = data.image || getProductImage();
+            
+            // Debug log to see what we're working with
+            console.log('Product data:', data);
+            console.log('Product image from data:', data.image);
+            console.log('getProductImage() result:', getProductImage());
+            console.log('Final productImage:', productImage);
+            
+            // Create a cart item with the correct structure expected by the cart slice
+            const cartItem = {
+                ...data,
+                id: data.id || data._id, // Ensure we have an id
+                _id: data._id || data.id, // Ensure we have an _id
+                quantity: 1, // This will be set by the cart slice
+                price: typeof data.price === 'number' ? data.price : Number(data.price) || 0, // Ensure price is a number
+                image: productImage // Include the image in the cart item
+            };
+            
+            console.log('Cart item being dispatched:', cartItem);
+            
+            // Dispatch the action (no need for .unwrap() since it's not an async thunk)
+            dispatch(addItemToCart(cartItem));
+            
+            // Call the onAddToCart callback if provided
+            if (onAddToCart) {
+                onAddToCart();
+            }
+            
+            // You could add a success notification here if needed
+            // toast.success('Item added to cart!');
         } catch (error) {
-            console.error('Failed to add to cart:', error)
-            // Error handling - show error toast
+            console.error('Failed to add to cart:', error);
+            // You could show an error toast here
+            // toast.error('Failed to add item to cart');
         } finally {
-            setIsAddingToCart(false)
+            setIsAddingToCart(false);
         }
     }
 

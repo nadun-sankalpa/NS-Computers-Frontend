@@ -6,7 +6,11 @@ import { ProductCard } from './ProductCard';
 import type { AppDispatch, RootState } from '../../../store/store';
 import ParticleBackground from '../../pages/home/particle-background';
 
-export default function ProductsPage() {
+export interface ProductsPageProps {
+    onAddToCart?: () => void;
+}
+
+export function ProductsPage({ onAddToCart }: ProductsPageProps) {
     const dispatch = useDispatch<AppDispatch>();
     const { list: products, loading, error } = useSelector((state: RootState) => state.product);
 
@@ -68,7 +72,11 @@ export default function ProductsPage() {
                 {loading === 'succeeded' && products.length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                         {products.map((product) => (
-                            <ProductCard key={product._id} data={product} />
+                            <ProductCard 
+                                key={product._id} 
+                                data={product} 
+                                onAddToCart={onAddToCart}
+                            />
                         ))}
                     </div>
                 )}
