@@ -58,10 +58,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('user', JSON.stringify(userData));
 
       // Redirect based on role
-      if (userData.role === 'admin') {
+      console.log('AuthProvider - User role:', userData.data.result.existingUser.role);
+      console.log("HI UserData",userData)
+      if (userData.data.result.existingUser.role === 'admin') {
+        console.log('AuthProvider - Admin login detected');
         navigate('/admin-dashboard');
       } else {
         navigate('/home');
+        console.log('AuthProvider - User login detected');
       }
     } catch (error) {
       throw error;
