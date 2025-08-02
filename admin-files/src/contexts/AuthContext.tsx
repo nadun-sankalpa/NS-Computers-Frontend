@@ -53,19 +53,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (credentials: api.LoginCredentials) => {
     try {
-      const response = await api.authService.login(credentials);
-      const userData = response.data.result.existingUser; // Extract the user data
+      const userData = await api.authService.login(credentials);
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
 
       // Redirect based on role
-      console.log('AuthProvider - User role:', userData.role);
-      if (userData.role === 'admin') {
+      console.log('AuthProvider - User role:', userData.data.result.existingUser.role);
+      console.log("HI UserData",userData)
+      if (userData.data.result.existingUser.role === 'admin') {
         console.log('AuthProvider - Admin login detected');
         navigate('/admin-dashboard');
       } else {
-        console.log('AuthProvider - User login detected');
         navigate('/home');
+        console.log('AuthProvider - User login detected');
       }
     } catch (error) {
       throw error;

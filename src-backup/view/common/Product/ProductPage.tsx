@@ -1,9 +1,10 @@
 // src/view/common/Product/ProductPage.tsx
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { getAllProducts } from '../../../slices/productSlice';
 import { ProductCard } from './ProductCard';
-import type { AppDispatch, RootState } from '../../../store/store';
+import { type AppDispatch, type RootState } from '../../../store/store';
 import ParticleBackground from '../../pages/home/particle-background';
 
 export interface ProductsPageProps {
@@ -16,29 +17,60 @@ export function ProductsPage({ onAddToCart }: ProductsPageProps) {
 
     useEffect(() => {
         const fetchProducts = async () => {
-            console.log('Starting to fetch products...');
             try {
+                console.log('Starting to fetch products...');
                 const result = await dispatch(getAllProducts()).unwrap();
                 console.log('Fetched products:', result);
-                console.log('Products list length:', result?.length || 0);
+                
+                if (!result || result.length === 0) {
+                    console.warn('No products found in the database');
+                    toast.warning('No products found. The database might be empty or there might be a connection issue.');
+                    
+                    // Check if we can access the API directly
+                    try {
+                        const apiResponse = await fetch('http://localhost:3000/api/products/get-all-products');
+                        const apiData = await apiResponse.json();
+                        console.log('Direct API response:', apiData);
+                        
+                        if (apiData && apiData.length === 0) {
+                            toast.warning('The database is empty. Please add products through the admin panel.');
+                        }
+                    } catch (apiError) {
+                        console.error('Error checking API directly:', apiError);
+                        toast.error('Could not connect to the products API. Please check if the backend is running.');
+                    }
+                }
             } catch (error) {
                 console.error('Failed to fetch products:', error);
+                toast.error('Failed to load products. Please try again later.');
+                
+                // More detailed error handling
                 if (error instanceof Error) {
-                    console.error('Error details:', error.message, error.stack);
+                    if (error.message.includes('Network Error')) {
+                        toast.error('Network error: Could not connect to the server. Make sure the backend is running.');
+                    } else if (error.message.includes('401')) {
+                        toast.error('Authentication error: Please log in again.');
+                    } else if (error.message.includes('404')) {
+                        toast.error('Products endpoint not found. The API might have changed.');
+                    } else if (error.message.includes('500')) {
+                        toast.error('Server error: Please try again later or contact support.');
+                    }
                 }
             }
         };
         
         fetchProducts();
-        
-        // Log the current state
-        console.log('Current product state:', { products, loading, error });
     }, [dispatch]);
 
-    // Add a debug log to check the products data
+    // Debug effect to log state changes
     React.useEffect(() => {
-        console.log('Products data:', products);
-    }, [products]);
+        console.log('Products state updated:', {
+            loading,
+            error,
+            productCount: products?.length || 0,
+            products
+        });
+    }, [products, loading, error]);
 
     return (
         <div className="min-h-screen bg-black text-white pt-32 relative overflow-hidden">

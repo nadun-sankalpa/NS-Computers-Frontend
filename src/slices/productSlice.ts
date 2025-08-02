@@ -18,12 +18,40 @@ const initialState: ProductState = {
 export const getAllProducts = createAsyncThunk('products/getAllProducts',
     async (_, { rejectWithValue }) => {
         try {
-            // Corrected backend endpoint based on product.routes.ts and app.ts mounting
+            console.log('Making API call to fetch products...');
             const response = await backendApi.get("/products/get-all-products");
-            return response.data;
+            console.log('API response:', response);
+            
+            // Handle the API response format
+            if (!response.data) {
+                console.warn('No data received in the response');
+                return [];
+            }
+            
+            // The API returns data in a { success, count, data } format
+            if (response.data.success && Array.isArray(response.data.data)) {
+                console.log(`Received ${response.data.count} products`);
+                return response.data.data;
+            }
+            
+            console.warn('Unexpected API response format:', response.data);
+            return [];
         } catch (error: any) {
-            // Use rejectWithValue to pass the error message to the rejected action
-            return rejectWithValue(error.response?.data?.message || error.message || "Failed to fetch products");
+            console.error('Error in getAllProducts:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+                config: {
+                    url: error.config?.url,
+                    method: error.config?.method,
+                    headers: error.config?.headers
+                }
+            });
+            return rejectWithValue({
+                message: error.response?.data?.message || error.message || "Failed to fetch products",
+                status: error.response?.status,
+                data: error.response?.data
+            });
         }
     }
 )

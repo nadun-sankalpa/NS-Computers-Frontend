@@ -53,14 +53,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (credentials: api.LoginCredentials) => {
     try {
-      const response = await api.authService.login(credentials);
-      const userData = response.data.result.existingUser; // Extract the user data
+      const userData = await api.authService.login(credentials);
+      
+      // Log the full response for debugging
+      console.log('Login response:', userData);
+      
+      // Save user data to state and localStorage
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
 
+      // Get the user's role from the response
+      const userRole = userData.role || 'user';
+      console.log('AuthProvider - User role:', userRole);
+      
       // Redirect based on role
-      console.log('AuthProvider - User role:', userData.role);
-      if (userData.role === 'admin') {
+      if (userRole === 'admin') {
         console.log('AuthProvider - Admin login detected');
         navigate('/admin-dashboard');
       } else {
@@ -109,9 +116,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   console.log('AuthProvider - Providing context value:', value);
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
+      <AuthContext.Provider value={value}>
+        {!loading && children}
+      </AuthContext.Provider>
   );
 };
 

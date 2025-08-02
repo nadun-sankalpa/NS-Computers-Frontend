@@ -54,13 +54,13 @@ const RootRedirect = () => {
 
 function App() {
     const [isCartOpen, setIsCartOpen] = useState(false);
-    
+
     return (
         <Provider store={store}>
             <Routes>
                 {/* Root route with role-based redirection */}
                 <Route path="/" element={<RootRedirect />} />
-                
+
                 {/* Public routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignupPage />} />

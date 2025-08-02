@@ -1,28 +1,32 @@
 "use client"
 
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import {
     Search,
+    Plus,
     Download,
-    TrendingUp,
     ShoppingCart,
-    DollarSign,
+    TrendingUp,
     Users,
+    DollarSign,
+    Save,
     Package,
     Bell,
     User,
+    X,
     LogOut,
-    MoreHorizontal,
-    Activity,
+    Clock,
+    Truck,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-// Removed Chart imports as they are no longer needed
-// import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-// import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis, ResponsiveContainer } from "recharts"
 
 // Enhanced animated background with intense red effects
 const AnimatedBackground = () => {
@@ -98,55 +102,10 @@ const AnimatedBackground = () => {
     )
 }
 
-export default function AdminDashboardPage() {
+export default function AdminOrdersPage() {
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
-
-    // Fake data for Recent Orders table
-    const recentOrders = [
-        { id: "#1001", customer: "John Doe", status: "Delivered", total: "LKR 120,000" },
-        { id: "#1002", customer: "Jane Smith", status: "Processing", total: "LKR 85,500" },
-        { id: "#1003", customer: "Robert Johnson", status: "Pending", total: "LKR 220,000" },
-        { id: "#1004", customer: "Emily Davis", status: "Shipped", total: "LKR 175,250" },
-        { id: "#1005", customer: "Michael Wilson", status: "Cancelled", total: "LKR 65,990" },
-        { id: "#1006", customer: "Sarah Brown", status: "Delivered", total: "LKR 300,000" },
-        { id: "#1007", customer: "David Lee", status: "Processing", total: "LKR 99,000" },
-        { id: "#1008", customer: "Olivia White", status: "Shipped", total: "LKR 140,000" },
-    ]
-
-    // Fake data for Top Selling Products
-    const topProducts = [
-        { name: "Gaming Laptop Pro", sales: "LKR 5,200,000", units: 120 },
-        { name: "Mechanical Keyboard RGB", sales: "LKR 1,800,000", units: 350 },
-        { name: "4K Ultra HD Monitor", sales: "LKR 2,500,000", units: 80 },
-        { name: "Wireless Gaming Mouse", sales: "LKR 950,000", units: 500 },
-        { name: "External SSD 1TB", sales: "LKR 1,100,000", units: 150 },
-    ]
-
-    // Fake data for Recent User Activity
-    const userActivity = [
-        { user: "Alice Johnson", action: "logged in", time: "2 minutes ago" },
-        { user: "Bob Williams", action: "updated profile", time: "15 minutes ago" },
-        { user: "Charlie Brown", action: "placed new order #1009", time: "30 minutes ago" },
-        { user: "Diana Prince", action: "viewed product 'Gaming Laptop Pro'", time: "1 hour ago" },
-        { user: "Eve Adams", action: "reset password", time: "2 hours ago" },
-    ]
-
-    const getStatusBadgeColor = (status: string) => {
-        switch (status) {
-            case "Delivered":
-                return "bg-green-500/20 text-green-400 border-green-500/30"
-            case "Processing":
-                return "bg-blue-500/20 text-blue-400 border-blue-500/30"
-            case "Pending":
-                return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-            case "Shipped":
-                return "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
-            case "Cancelled":
-                return "bg-red-500/20 text-red-400 border-red-500/30"
-            default:
-                return "bg-gray-500/20 text-gray-400 border-gray-500/30"
-        }
-    }
+    const [selectedStatus, setSelectedStatus] = useState("all")
 
     return (
         <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -157,31 +116,35 @@ export default function AdminDashboardPage() {
                 <div className="p-6">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-500/30 animate-pulse">
-                            <TrendingUp className="w-5 h-5 text-white" />
+                            <ShoppingCart className="w-5 h-5 text-white" />
                         </div>
                         <span className="text-xl font-bold text-red-400">NS Computers</span>
                     </div>
 
                     <nav className="space-y-2">
                         {[
-                            { icon: TrendingUp, label: "Dashboard", active: true },
-                            { icon: Users, label: "Users", active: false },
-                            { icon: ShoppingCart, label: "Orders", active: false },
-                            { icon: Package, label: "Products", active: false },
-                            { icon: DollarSign, label: "Analytics", active: false },
-                        ].map((item) => (
-                            <div
-                                key={item.label}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 cursor-pointer ${
-                                    item.active
-                                        ? "bg-red-500/25 border border-red-500/40 text-red-400 shadow-lg shadow-red-500/15 animate-pulse"
-                                        : "hover:bg-slate-700/50 text-slate-300 hover:shadow-md hover:shadow-red-500/5"
-                                }`}
-                            >
-                                <item.icon className="w-5 h-5" />
-                                <span className="font-medium">{item.label}</span>
-                            </div>
-                        ))}
+                            { icon: TrendingUp, label: "Dashboard", link: "/admin-dashboard" },
+                            { icon: Users, label: "Users", link: "/admin/users" },
+                            { icon: ShoppingCart, label: "Orders", link: "/admin/orders" },
+                            { icon: Package, label: "Products", link: "/admin/products" },
+                            { icon: DollarSign, label: "Analytics", link: "/admin/analytics" },
+                        ].map((item) => {
+                            const isActive = window.location.pathname === item.link;
+                            return (
+                                <Link
+                                    key={item.label}
+                                    to={item.link}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                                        isActive
+                                            ? "bg-red-500/25 border border-red-500/40 text-red-400 shadow-lg shadow-red-500/15 animate-pulse"
+                                            : "hover:bg-slate-700/50 text-slate-300 hover:shadow-md hover:shadow-red-500/5"
+                                    }`}
+                                >
+                                    <item.icon className="w-5 h-5" />
+                                    <span className="font-medium">{item.label}</span>
+                                </Link>
+                            );
+                        })}
                     </nav>
 
                     <div className="absolute bottom-6 left-6 right-6">
@@ -221,7 +184,7 @@ export default function AdminDashboardPage() {
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                                 <Input
-                                    placeholder="Search..."
+                                    placeholder="Search orders..."
                                     className="pl-10 bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/25 transition-all duration-300"
                                 />
                             </div>
@@ -257,8 +220,8 @@ export default function AdminDashboardPage() {
                     {/* Header */}
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-                            <p className="text-slate-400">Welcome back, Admin</p>
+                            <h1 className="text-3xl font-bold text-white mb-2">Order Management</h1>
+                            <p className="text-slate-400">Track and manage customer orders</p>
                         </div>
 
                         <div className="flex items-center gap-4">
@@ -269,7 +232,14 @@ export default function AdminDashboardPage() {
                                 <Download className="w-4 h-4 mr-2" />
                                 Export
                             </Button>
-                            {/* Removed "Add New" button as requested */}
+                            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                                <DialogTrigger asChild>
+                                    <Button className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/40 hover:shadow-red-500/60 transform hover:scale-110 transition-all duration-300 animate-pulse">
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Add Order
+                                    </Button>
+                                </DialogTrigger>
+                            </Dialog>
                         </div>
                     </div>
 
@@ -277,40 +247,40 @@ export default function AdminDashboardPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         {[
                             {
-                                title: "Total Revenue",
-                                value: "LKR 24,780",
-                                icon: DollarSign,
-                                change: "12.5% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-cyan-400",
-                                bgGlow: "shadow-cyan-500/15",
-                            },
-                            {
                                 title: "Total Orders",
-                                value: "1,245",
+                                value: "3,247",
                                 icon: ShoppingCart,
-                                change: "8.2% from last week",
+                                change: "18.5% from last week",
                                 changeColor: "text-green-400",
                                 iconColor: "text-red-400",
                                 bgGlow: "shadow-red-500/15",
                             },
                             {
-                                title: "Total Customers",
-                                value: "845",
-                                icon: Users,
-                                change: "2.1% from last week",
-                                changeColor: "text-red-400",
-                                iconColor: "text-purple-400",
-                                bgGlow: "shadow-purple-500/15",
-                            },
-                            {
-                                title: "Total Products",
-                                value: "1,289",
-                                icon: Package,
-                                change: "5.3% from last week",
-                                changeColor: "text-green-400",
+                                title: "Pending Orders",
+                                value: "156",
+                                icon: Clock,
+                                change: "12 new today",
+                                changeColor: "text-yellow-400",
                                 iconColor: "text-yellow-400",
                                 bgGlow: "shadow-yellow-500/15",
+                            },
+                            {
+                                title: "Shipped Orders",
+                                value: "2,891",
+                                icon: Truck,
+                                change: "15.2% from last week",
+                                changeColor: "text-green-400",
+                                iconColor: "text-cyan-400",
+                                bgGlow: "shadow-cyan-500/15",
+                            },
+                            {
+                                title: "Total Revenue",
+                                value: "LKR 8,456,200",
+                                icon: DollarSign,
+                                change: "22.8% from last week",
+                                changeColor: "text-green-400",
+                                iconColor: "text-green-400",
+                                bgGlow: "shadow-green-500/15",
                             },
                         ].map((stat) => (
                             <Card
@@ -337,82 +307,9 @@ export default function AdminDashboardPage() {
                         ))}
                     </div>
 
-                    {/* New UI Elements Section (replacing charts) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        {/* Top Selling Products */}
-                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-xl shadow-red-500/5">
-                            <CardHeader className="border-b border-slate-700/50">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-white">Top Selling Products</CardTitle>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/15 transition-all duration-300"
-                                    >
-                                        View All
-                                    </Button>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                        <tr className="border-b border-slate-700/50">
-                                            <th className="text-left p-4 font-medium text-slate-400 text-sm">PRODUCT</th>
-                                            <th className="text-left p-4 font-medium text-slate-400 text-sm">SALES</th>
-                                            <th className="text-left p-4 font-medium text-slate-400 text-sm">UNITS</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {topProducts.map((product, index) => (
-                                            <tr
-                                                key={index}
-                                                className="border-b border-slate-700/50 last:border-b-0 hover:bg-slate-700/20 transition-colors"
-                                            >
-                                                <td className="p-4 text-sm text-white font-medium">{product.name}</td>
-                                                <td className="p-4 text-sm text-slate-300">{product.sales}</td>
-                                                <td className="p-4 text-sm text-white">{product.units}</td>
-                                            </tr>
-                                        ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Recent User Activity */}
-                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-xl shadow-red-500/5">
-                            <CardHeader className="border-b border-slate-700/50">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-white">Recent User Activity</CardTitle>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/15 transition-all duration-300"
-                                    >
-                                        View All
-                                    </Button>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-6 space-y-4">
-                                {userActivity.map((activity, index) => (
-                                    <div key={index} className="flex items-center gap-3">
-                                        <Activity className="w-5 h-5 text-red-400 flex-shrink-0" />
-                                        <div className="flex-1">
-                                            <p className="text-sm text-white">
-                                                <span className="font-semibold">{activity.user}</span> {activity.action}
-                                            </p>
-                                            <p className="text-xs text-slate-400">{activity.time}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Recent Orders Table & Quick Stats Section */}
+                    {/* Orders Section */}
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        {/* Recent Orders Table */}
+                        {/* Main Orders Table */}
                         <div className="lg:col-span-3">
                             <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-xl shadow-red-500/5">
                                 <CardHeader className="border-b border-slate-700/50">
@@ -433,44 +330,27 @@ export default function AdminDashboardPage() {
                                             <thead>
                                             <tr className="border-b border-slate-700/50">
                                                 <th className="text-left p-4 font-medium text-slate-400 text-sm">ORDER ID</th>
-                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">CUSTOMER</th>
+                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">USER ID</th>
+                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">USERNAME</th>
+                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">ITEMS</th>
                                                 <th className="text-left p-4 font-medium text-slate-400 text-sm">STATUS</th>
-                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">TOTAL</th>
+                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">TOTAL PRICE</th>
                                                 <th className="text-left p-4 font-medium text-slate-400 text-sm">ACTIONS</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {recentOrders.map((order) => (
-                                                <tr
-                                                    key={order.id}
-                                                    className="border-b border-slate-700/50 last:border-b-0 hover:bg-slate-700/20 transition-colors"
-                                                >
-                                                    <td className="p-4 text-sm text-white font-medium">{order.id}</td>
-                                                    <td className="p-4 text-sm text-slate-300">{order.customer}</td>
-                                                    <td className="p-4 text-sm">
-                                                        <Badge variant="outline" className={`border ${getStatusBadgeColor(order.status)}`}>
-                                                            {order.status}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="p-4 text-sm text-white font-medium">{order.total}</td>
-                                                    <td className="p-4 text-sm text-slate-400">
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-700/50">
-                                                                    <MoreHorizontal className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent className="bg-slate-800 border-slate-700">
-                                                                <DropdownMenuItem className="hover:bg-slate-700">View Details</DropdownMenuItem>
-                                                                <DropdownMenuItem className="hover:bg-slate-700">Edit</DropdownMenuItem>
-                                                                <DropdownMenuItem className="hover:bg-red-500/20 text-red-400">
-                                                                    Delete
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {/* Empty table - no data */}
+                                            <tr>
+                                                <td colSpan={7} className="p-12 text-center">
+                                                    <div className="flex flex-col items-center gap-4">
+                                                        <ShoppingCart className="w-12 h-12 text-slate-600" />
+                                                        <p className="text-slate-400">No orders found</p>
+                                                        <p className="text-slate-500 text-sm">
+                                                            Orders will appear here once customers start placing them
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                            </tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -482,16 +362,20 @@ export default function AdminDashboardPage() {
                         <div className="space-y-6">
                             <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-xl shadow-red-500/5">
                                 <CardHeader>
-                                    <CardTitle className="text-white text-lg">Quick Stats</CardTitle>
+                                    <CardTitle className="text-white text-lg">Order Analytics</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-slate-400">Total Sales</span>
-                                        <span className="text-white font-semibold">LKR 45,231</span>
+                                        <span className="text-slate-400">Today's Orders</span>
+                                        <span className="text-white font-semibold">47</span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-slate-400">Total Orders</span>
-                                        <span className="text-white font-semibold">3,456</span>
+                                        <span className="text-slate-400">Processing</span>
+                                        <span className="text-yellow-400 font-semibold">23</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-slate-400">Cancelled</span>
+                                        <span className="text-red-400 font-semibold">5</span>
                                     </div>
                                     <Button className="w-full bg-red-500 hover:bg-red-600 text-white mt-4 shadow-lg shadow-red-500/40 hover:shadow-red-500/60 transition-all duration-300 transform hover:scale-105">
                                         Generate Report
@@ -502,6 +386,123 @@ export default function AdminDashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Add Order Modal */}
+            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                <DialogContent className="bg-slate-800/95 backdrop-blur-xl border-slate-700/50 max-w-3xl shadow-2xl shadow-red-500/15">
+                    <DialogHeader className="border-b border-slate-700/50 pb-4">
+                        <div className="flex items-center justify-between">
+                            <DialogTitle className="text-xl font-bold text-white">Add New Order</DialogTitle>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="text-slate-400 hover:text-white hover:bg-red-500/15"
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </DialogHeader>
+
+                    <div className="py-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="orderId" className="text-slate-300 font-medium">
+                                        Order ID
+                                    </Label>
+                                    <Input
+                                        id="orderId"
+                                        type="number"
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/25 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
+                                        placeholder="Enter order ID"
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="userId" className="text-slate-300 font-medium">
+                                        User ID
+                                    </Label>
+                                    <Input
+                                        id="userId"
+                                        type="number"
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/25 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
+                                        placeholder="Enter user ID"
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="username" className="text-slate-300 font-medium">
+                                        Username
+                                    </Label>
+                                    <Input
+                                        id="username"
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/25 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
+                                        placeholder="Enter username"
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="totalPrice" className="text-slate-300 font-medium">
+                                        Total Price (LKR)
+                                    </Label>
+                                    <Input
+                                        id="totalPrice"
+                                        type="number"
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/25 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="status" className="text-slate-300 font-medium">
+                                        Order Status
+                                    </Label>
+                                    <Select>
+                                        <SelectTrigger className="bg-slate-700/50 border-slate-600 focus:border-red-500 mt-2 text-white">
+                                            <SelectValue placeholder="Select order status" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-slate-800 border-slate-700">
+                                            <SelectItem value="pending">Pending</SelectItem>
+                                            <SelectItem value="processing">Processing</SelectItem>
+                                            <SelectItem value="shipped">Shipped</SelectItem>
+                                            <SelectItem value="delivered">Delivered</SelectItem>
+                                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="items" className="text-slate-300 font-medium">
+                                        Order Items (JSON Format)
+                                    </Label>
+                                    <Textarea
+                                        id="items"
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/25 mt-2 text-white placeholder:text-slate-400 min-h-[120px] transition-all duration-300"
+                                        placeholder='[{"productId": 1, "name": "Product Name", "quantity": 2, "price": 1500}]'
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-700/50">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsAddModalOpen(false)}
+                            className="border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white bg-transparent"
+                        >
+                            Cancel
+                        </Button>
+                        <Button className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/40 hover:shadow-red-500/60 transform hover:scale-110 transition-all duration-300">
+                            <Save className="w-4 h-4 mr-2" />
+                            Save Order
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
