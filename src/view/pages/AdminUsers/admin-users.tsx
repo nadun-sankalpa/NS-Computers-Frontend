@@ -19,12 +19,12 @@ export default function AdminUsersPage() {
     const dispatch = useDispatch<AppDispatch>();
     const users = useSelector(selectAllUsers);
     const status = useSelector(getUserStatus);
-    
+
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-    
+
     // Form state
     const [formData, setFormData] = useState({
         username: '',
@@ -53,14 +53,14 @@ export default function AdminUsersPage() {
     // Handle form submit (add user)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (formData.password !== formData.confirmPassword) {
             toast.error('Passwords do not match');
             return;
         }
-        
+
         const { confirmPassword, ...userData } = formData;
-        
+
         try {
             await dispatch(addUser(userData)).unwrap();
             setFormData({
@@ -75,7 +75,7 @@ export default function AdminUsersPage() {
             console.error('Failed to add user:', error);
         }
     };
-    
+
     // Handle edit user
     const handleEdit = (user: User) => {
         setCurrentUser(user);
@@ -88,22 +88,22 @@ export default function AdminUsersPage() {
         });
         setIsEditModalOpen(true);
     };
-    
+
     // Handle update user
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (formData.password && formData.password !== formData.confirmPassword) {
             toast.error('Passwords do not match');
             return;
         }
-        
+
         const userData = { ...formData };
         if (!userData.password) {
             delete userData.password;
             delete userData.confirmPassword;
         }
-        
+
         try {
             if (currentUser?._id) {
                 await dispatch(updateUser({ id: currentUser._id, userData })).unwrap();
@@ -121,7 +121,7 @@ export default function AdminUsersPage() {
             console.error('Failed to update user:', error);
         }
     };
-    
+
     // Handle delete user
     const handleDelete = async (id: string) => {
         if (window.confirm('Are you sure you want to delete this user?')) {
@@ -132,9 +132,9 @@ export default function AdminUsersPage() {
             }
         }
     };
-    
+
     // Filter users based on search term
-    const filteredUsers = users.filter(user => 
+    const filteredUsers = users.filter(user =>
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -195,53 +195,53 @@ export default function AdminUsersPage() {
             <div className="bg-white rounded-lg border border-gray-200">
                 <table className="w-full">
                     <thead>
-                        <tr className="border-b border-gray-200">
-                            <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">USER</th>
-                            <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">EMAIL</th>
-                            <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">ROLE</th>
-                            <th className="px-6 py-4 text-right text-sm font-medium text-gray-900">ACTIONS</th>
-                        </tr>
+                    <tr className="border-b border-gray-200">
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">USER</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">EMAIL</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">ROLE</th>
+                        <th className="px-6 py-4 text-right text-sm font-medium text-gray-900">ACTIONS</th>
+                    </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {filteredUsers.map((user) => (
-                            <tr key={user._id} className="hover:bg-gray-100 transition-colors duration-200">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                            <User className="w-5 h-5 text-gray-400" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">{user.username}</p>
-                                            <p className="text-xs text-gray-400">@{user.username.toLowerCase()}</p>
-                                        </div>
+                    {filteredUsers.map((user) => (
+                        <tr key={user._id} className="hover:bg-gray-100 transition-colors duration-200">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                        <User className="w-5 h-5 text-gray-400" />
                                     </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900">{user.username}</p>
+                                        <p className="text-xs text-gray-400">@{user.username.toLowerCase()}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 py-1 text-xs rounded-full ${
-                                        user.role === 'admin' 
-                                            ? 'bg-blue-500/20 text-blue-400' 
+                                        user.role === 'admin'
+                                            ? 'bg-blue-500/20 text-blue-400'
                                             : 'bg-green-500/20 text-green-400'
                                     }`}>
                                         {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                                     </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button 
-                                        onClick={() => handleEdit(user)}
-                                        className="text-blue-400 hover:text-blue-300 mr-4"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button 
-                                        onClick={() => user._id && handleDelete(user._id)}
-                                        className="text-red-400 hover:text-red-300"
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button
+                                    onClick={() => handleEdit(user)}
+                                    className="text-blue-400 hover:text-blue-300 mr-4"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => user._id && handleDelete(user._id)}
+                                    className="text-red-400 hover:text-red-300"
+                                >
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
                     </tbody>
                 </table>
             </div>
@@ -276,9 +276,9 @@ export default function AdminUsersPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="role">Role</Label>
-                            <Select 
-                                name="role" 
-                                value={formData.role} 
+                            <Select
+                                name="role"
+                                value={formData.role}
                                 onValueChange={(value) => setFormData({...formData, role: value as 'admin' | 'user'})}
                             >
                                 <SelectTrigger>
@@ -313,8 +313,8 @@ export default function AdminUsersPage() {
                             />
                         </div>
                         <div className="flex justify-end gap-2 pt-4">
-                            <Button 
-                                type="button" 
+                            <Button
+                                type="button"
                                 variant="outline"
                                 onClick={() => setIsAddModalOpen(false)}
                             >
@@ -327,7 +327,7 @@ export default function AdminUsersPage() {
                     </form>
                 </DialogContent>
             </Dialog>
-            
+
             {/* Edit User Modal */}
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
                 <DialogContent className="sm:max-w-[425px] bg-slate-800 border-slate-700">
@@ -369,9 +369,9 @@ export default function AdminUsersPage() {
                                 <Label htmlFor="edit-role" className="text-slate-300">
                                     Role
                                 </Label>
-                                <Select 
-                                    name="role" 
-                                    value={formData.role} 
+                                <Select
+                                    name="role"
+                                    value={formData.role}
                                     onValueChange={(value) => setFormData({...formData, role: value})}
                                 >
                                     <SelectTrigger className="w-full bg-slate-700 border-slate-600 text-white">

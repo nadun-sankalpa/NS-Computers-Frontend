@@ -34,22 +34,9 @@ const ProtectedRoute = ({ children, requiredRole = 'user' }: { children: React.R
     return <>{children}</>;
 };
 
-// Root route component to handle redirection based on user role
+// Root route component to redirect to home page by default
 const RootRedirect = () => {
-    const { isAuthenticated, user, loading } = useAuth();
-
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
-    if (isAuthenticated && user) {
-        if (user.role === 'admin') {
-            return <Navigate to="/admin-dashboard" replace />;
-        }
-        return <Navigate to="/home" replace />;
-    }
-
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/home" replace />;
 };
 
 function App() {
