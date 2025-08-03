@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Link } from "react-router-dom"
 import {
     Search,
     Plus,
@@ -123,28 +122,24 @@ export default function AdminOrdersPage() {
 
                     <nav className="space-y-2">
                         {[
-                            { icon: TrendingUp, label: "Dashboard", link: "/admin-dashboard" },
-                            { icon: Users, label: "Users", link: "/admin/users" },
-                            { icon: ShoppingCart, label: "Orders", link: "/admin/orders" },
-                            { icon: Package, label: "Products", link: "/admin/products" },
-                            { icon: DollarSign, label: "Analytics", link: "/admin/analytics" },
-                        ].map((item) => {
-                            const isActive = window.location.pathname === item.link;
-                            return (
-                                <Link
-                                    key={item.label}
-                                    to={item.link}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
-                                        isActive
-                                            ? "bg-red-500/25 border border-red-500/40 text-red-400 shadow-lg shadow-red-500/15 animate-pulse"
-                                            : "hover:bg-slate-700/50 text-slate-300 hover:shadow-md hover:shadow-red-500/5"
-                                    }`}
-                                >
-                                    <item.icon className="w-5 h-5" />
-                                    <span className="font-medium">{item.label}</span>
-                                </Link>
-                            );
-                        })}
+                            { icon: TrendingUp, label: "Dashboard", active: false },
+                            { icon: Users, label: "Users", active: false },
+                            { icon: ShoppingCart, label: "Orders", active: true },
+                            { icon: Package, label: "Products", active: false },
+                            { icon: DollarSign, label: "Analytics", active: false },
+                        ].map((item) => (
+                            <div
+                                key={item.label}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 cursor-pointer ${
+                                    item.active
+                                        ? "bg-red-500/25 border border-red-500/40 text-red-400 shadow-lg shadow-red-500/15 animate-pulse"
+                                        : "hover:bg-slate-700/50 text-slate-300 hover:shadow-md hover:shadow-red-500/5"
+                                }`}
+                            >
+                                <item.icon className="w-5 h-5" />
+                                <span className="font-medium">{item.label}</span>
+                            </div>
+                        ))}
                     </nav>
 
                     <div className="absolute bottom-6 left-6 right-6">

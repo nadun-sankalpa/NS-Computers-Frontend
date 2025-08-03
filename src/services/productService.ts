@@ -6,11 +6,18 @@ const productService = {
   // Get all products
   async getProducts(): Promise<Product[]> {
     try {
-      const response = await backendApi.get('/products');
-      return response.data;
+      const response = await backendApi.get('/products/get-all-products');
+      // The backend returns { success, count, data } where data contains the products array
+      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+        return response.data.data;
+      } else {
+        console.error('Unexpected response format:', response.data);
+        toast.error('Received unexpected data format from server');
+        return [];
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
-      toast.error('Failed to load products');
+      toast.error('Failed to load products. Please check your backend connection.');
       return [];
     }
   },

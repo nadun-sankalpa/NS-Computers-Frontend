@@ -6,6 +6,9 @@ import ContactPage from "./view/pages/Contact/Contact.tsx";
 import HomePage from "./view/pages/home/Home.tsx";
 import { ProductsPage } from "./view/common/Product/ProductPage.tsx";
 import AdminDashboard from "./view/pages/AdminDashboard/admin-dashboard.tsx";
+import AdminUsersPage from './view/pages/AdminUsers/admin-users';
+import AdminOrdersPage from './view/pages/AdminOrders/admin-orders';
+import AdminProductPage from './view/pages/AdminProducts/admin-products';
 import { useAuth } from "@/contexts/AuthContext";
 import AboutPage from "@/view/pages/About/About.tsx";
 import PaymentMethodsPage from "@/view/pages/PaymentMethod/PaymentMethods.tsx";
@@ -13,7 +16,7 @@ import ServicesPage from "@/view/pages/Service/services.tsx";
 import { Cart } from "@/components/cart/Cart";
 import { useState } from "react";
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { store } from "./store/store.tsx";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole = 'user' }: { children: React.ReactNode, requiredRole?: 'user' | 'admin' }) => {
@@ -52,59 +55,50 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignupPage />} />
 
-                {/* Protected user routes with DefaultLayout */}
-                <Route path="/home" element={
-                    <ProtectedRoute>
-                        <DefaultLayout onCartClick={() => setIsCartOpen(true)}>
-                            <HomePage />
-                        </DefaultLayout>
-                    </ProtectedRoute>
-                } />
-                <Route path="/products" element={
-                    <ProtectedRoute>
-                        <DefaultLayout onCartClick={() => setIsCartOpen(true)}>
-                            <ProductsPage onAddToCart={() => setIsCartOpen(true)} />
-                        </DefaultLayout>
-                    </ProtectedRoute>
-                } />
-                <Route path="/contact" element={
-                    <ProtectedRoute>
-                        <DefaultLayout onCartClick={() => setIsCartOpen(true)}>
-                            <ContactPage />
-                        </DefaultLayout>
-                    </ProtectedRoute>
-                } />
-                <Route path="/about" element={
-                    <ProtectedRoute>
-                        <DefaultLayout onCartClick={() => setIsCartOpen(true)}>
-                            <AboutPage />
-                        </DefaultLayout>
-                    </ProtectedRoute>
-                } />
-                <Route path="/payment-methods" element={
-                    <ProtectedRoute>
-                        <DefaultLayout onCartClick={() => setIsCartOpen(true)}>
-                            <PaymentMethodsPage />
-                        </DefaultLayout>
-                    </ProtectedRoute>
-                } />
-                <Route path="/services" element={
-                    <ProtectedRoute>
-                        <DefaultLayout onCartClick={() => setIsCartOpen(true)}>
-                            <ServicesPage />
-                        </DefaultLayout>
-                    </ProtectedRoute>
-                } />
+                {/* Routes with DefaultLayout */}
+                <Route path="/" element={<DefaultLayout onCartClick={() => setIsCartOpen(true)} />}>
+                    <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path="/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
+                    <Route path="/contact" element={<ProtectedRoute><ContactPage /></ProtectedRoute>} />
+                    <Route path="/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
+                    <Route path="/services" element={<ProtectedRoute><ServicesPage /></ProtectedRoute>} />
+                    <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethodsPage /></ProtectedRoute>} />
+                </Route>
 
-                {/* Admin routes */}
-                <Route path="/admin-dashboard" element={
-                    <ProtectedRoute requiredRole="admin">
-                        <AdminDashboard />
-                    </ProtectedRoute>
-                } />
+                {/* Admin protected routes */}
+                <Route
+                    path="/admin-dashboard"
+                    element={
+                        <ProtectedRoute requiredRole="admin">
+                            <AdminDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin-users"
+                    element={
+                        <ProtectedRoute requiredRole="admin">
+                            <AdminUsersPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin-orders"
+                    element={
+                        <ProtectedRoute requiredRole="admin">
+                            <AdminOrdersPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin-products"
+                    element={
+                        <ProtectedRoute requiredRole="admin">
+                            <AdminProductPage />
+                        </ProtectedRoute>
+                    }
+                />
             </Routes>
-
-            {/* Cart Sidebar */}
             <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         </Provider>
     );

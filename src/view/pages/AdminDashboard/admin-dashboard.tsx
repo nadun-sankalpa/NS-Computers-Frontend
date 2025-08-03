@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import {
     Search,
     Download,
@@ -164,23 +165,24 @@ export default function AdminDashboardPage() {
 
                     <nav className="space-y-2">
                         {[
-                            { icon: TrendingUp, label: "Dashboard", active: true },
-                            { icon: Users, label: "Users", active: false },
-                            { icon: ShoppingCart, label: "Orders", active: false },
-                            { icon: Package, label: "Products", active: false },
-                            { icon: DollarSign, label: "Analytics", active: false },
+                            { icon: TrendingUp, label: "Dashboard", href: "/admin-dashboard", active: true },
+                            { icon: Users, label: "Users", href: "/admin-users", active: false },
+                            { icon: ShoppingCart, label: "Orders", href: "/admin-orders", active: false },
+                            { icon: Package, label: "Products", href: "/admin-products", active: false },
+                            { icon: DollarSign, label: "Analytics", href: "/admin-analytics", active: false },
                         ].map((item) => (
-                            <div
-                                key={item.label}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 cursor-pointer ${
-                                    item.active
-                                        ? "bg-red-500/25 border border-red-500/40 text-red-400 shadow-lg shadow-red-500/15 animate-pulse"
-                                        : "hover:bg-slate-700/50 text-slate-300 hover:shadow-md hover:shadow-red-500/5"
-                                }`}
-                            >
-                                <item.icon className="w-5 h-5" />
-                                <span className="font-medium">{item.label}</span>
-                            </div>
+                            <Link to={item.href} key={item.label} className="block">
+                                <div
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 cursor-pointer ${
+                                        item.active
+                                            ? "bg-red-500/25 border border-red-500/40 text-red-400 shadow-lg shadow-red-500/15 animate-pulse"
+                                            : "hover:bg-slate-700/50 text-slate-300 hover:shadow-md hover:shadow-red-500/5"
+                                    }`}
+                                >
+                                    <item.icon className="w-5 h-5" />
+                                    <span className="font-medium">{item.label}</span>
+                                </div>
+                            </Link>
                         ))}
                     </nav>
 
