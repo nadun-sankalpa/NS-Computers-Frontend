@@ -1,11 +1,24 @@
 // src/view/common/Product/ProductPage.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { createSelector } from '@reduxjs/toolkit';
 import { getAllProducts } from "@/slices/productSlice";
 import { ProductCard } from './ProductCard';
 import type { AppDispatch, RootState } from '../../../store/store';
 import ParticleBackground from '../../pages/home/particle-background';
 import { Product } from '../../../types/product';
+
+// Memoized selector to prevent unnecessary re-renders
+const selectProductsState = (state: RootState) => state.product;
+
+const selectProductsData = createSelector(
+  [selectProductsState],
+  (productState) => ({
+    products: productState.list || [],
+    status: productState.loading,
+    error: productState.error
+  })
+);
 
 export interface ProductsPageProps {
   onAddToCart?: (product: Product) => void;
@@ -13,11 +26,8 @@ export interface ProductsPageProps {
 
 export const ProductsPage: React.FC<ProductsPageProps> = ({ onAddToCart }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { products, status, error } = useSelector((state: RootState) => ({
-    products: state.product.products || [],
-    status: state.product.status,
-    error: state.product.error
-  }));
+  // Using the memoized selector
+  const { products, status, error } = useSelector(selectProductsData);
 
   useEffect(() => {
     if (status === 'idle') {
