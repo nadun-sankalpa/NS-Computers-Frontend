@@ -1,7 +1,7 @@
 // src/view/common/Product/ProductPage.tsx
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllProducts } from '../../../store/slices/productSlice';
+import { getAllProducts } from "@/slices/productSlice";
 import { ProductCard } from './ProductCard';
 import type { AppDispatch, RootState } from '../../../store/store';
 import ParticleBackground from '../../pages/home/particle-background';
