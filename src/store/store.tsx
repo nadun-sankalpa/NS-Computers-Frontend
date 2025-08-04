@@ -3,12 +3,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { TypedUseSelectorHook } from 'react-redux';
 import productReducer from "@/slices/productSlice";
 import cartReducer from "./slices/cartSlice";
+import userReducer from "@/slices/userSlice";
 
 // Create the store with explicit type annotations
 export const store = configureStore({
   reducer: {
     product: productReducer,
     cart: cartReducer,
+    users: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

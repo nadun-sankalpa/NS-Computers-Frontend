@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useDispatch, useSelector } from 'react-redux'
+import { toast } from 'sonner'
 import {
     Search,
     Plus,
@@ -17,15 +19,49 @@ import {
     Shield,
     UserCheck,
     LogOut,
+    Loader2,
+    Edit,
+    Trash2,
+    Check,
+    X as XIcon,
+    MoreHorizontal,
+    RefreshCw
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+    DialogTrigger
+} from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
+// Import Redux actions
+import { fetchUsers, createUser, updateUser, deleteUser } from "@/slices/userSlice"
+
+// User type for form state
+type UserFormData = {
+    _id?: string | number;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    role: "admin" | "customer";
+    password?: string;
+    confirmPassword?: string;
+}
 
 // Enhanced animated background with more red effects (no lines)
 const AnimatedBackground = () => {
@@ -76,9 +112,267 @@ const AnimatedBackground = () => {
 }
 
 export default function AdminUsersPage() {
+    const dispatch = useDispatch()
+    const { users, isLoading, error } = useSelector((state: any) => state.users || { users: [], isLoading: false, error: null })
+
+    // Form state
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedRole, setSelectedRole] = useState("all")
+    const [currentUser, setCurrentUser] = useState<UserFormData | null>(null)
+    const [formData, setFormData] = useState<UserFormData>({
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+        role: "customer",
+        password: Math.random().toString(36).slice(-8), // Auto-generate a default password
+        confirmPassword: ""
+    })
+    const [formErrors, setFormErrors] = useState<Partial<UserFormData>>({})
+
+    // Fetch users on component mount and log the users data
+    useEffect(() => {
+        console.log('AdminUsersPage: Fetching users...');
+        dispatch(fetchUsers())
+            .then((result) => {
+                console.log('AdminUsersPage: Fetched users:', result.payload);
+            })
+            .catch((error) => {
+                console.error('AdminUsersPage: Error fetching users:', error);
+            });
+    }, [dispatch])
+
+    // Handle API errors
+    useEffect(() => {
+        if (error) {
+            toast.error(`Error: ${error}`)
+        }
+    }, [error])
+
+    // Filter users based on search and role
+    const filteredUsers = users.filter((user: any) => {
+        const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        const matchesRole = selectedRole === "all" || user.role === selectedRole
+        return matchesSearch && matchesRole
+    })
+
+    // Handle form input changes
+    const handleInputChange = (field: keyof UserFormData, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }))
+        // Clear error when user types
+        if (formErrors[field as keyof typeof formErrors]) {
+            setFormErrors(prev => ({
+                ...prev,
+                [field]: undefined
+            }))
+        }
+    }
+
+    // Validate form
+    const validateForm = (): boolean => {
+        console.log('Validating form with data:', formData);
+        const errors: Partial<UserFormData> = {}
+        
+        // Validate name
+        if (!formData.name?.trim()) {
+            errors.name = "Name is required"
+            console.log('Name validation failed: Name is required')
+        }
+        
+        // Validate email
+        if (!formData.email?.trim()) {
+            errors.email = "Email is required"
+            console.log('Email validation failed: Email is required')
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            errors.email = "Email is invalid"
+            console.log('Email validation failed: Invalid email format')
+        }
+        
+        // Validate phone
+        if (!formData.phone?.trim()) {
+            errors.phone = "Phone is required"
+            console.log('Phone validation failed: Phone is required')
+        }
+        
+        // Validate address
+        if (!formData.address?.trim()) {
+            errors.address = "Address is required"
+            console.log('Address validation failed: Address is required')
+        }
+        
+        // Only validate password for new users
+        if (!currentUser?._id) {
+            if (!formData.password) {
+                errors.password = "Password is required"
+                console.log('Password validation failed: Password is required')
+            } else if (formData.password.length < 6) {
+                errors.password = "Password must be at least 6 characters"
+                console.log('Password validation failed: Too short')
+            }
+        }
+        
+        console.log('Validation errors:', errors);
+        setFormErrors(errors)
+        const isValid = Object.keys(errors).length === 0
+        console.log('Form is valid:', isValid)
+        return isValid
+    }
+
+    // Reset form
+    const resetForm = () => {
+        setFormData({
+            name: "",
+            email: "",
+            phone: "",
+            address: "",
+            role: "customer",
+            password: ""
+        })
+        setFormErrors({})
+        setCurrentUser(null)
+    }
+
+    // Handle form submission
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        console.log('Form submitted with data:', formData)
+        
+        if (!validateForm()) {
+            console.log('Form validation failed')
+            return
+        }
+        
+        try {
+            // Create a clean user data object without undefined or empty password for updates
+            const userData = { ...formData }
+            
+            // For new users, ensure password is provided
+            if (!currentUser?._id && !userData.password) {
+                throw new Error("Password is required")
+            }
+            
+            // Remove password field if it's empty (for updates)
+            if (currentUser?._id && !userData.password) {
+                delete userData.password
+            }
+            
+            console.log('Sending user data to server:', userData)
+            
+            if (currentUser?._id) {
+                // Update existing user
+                const result = await dispatch(updateUser({ 
+                    id: currentUser._id, 
+                    updatedUserData: userData 
+                })).unwrap()
+                
+                console.log('User update result:', result)
+                toast.success("User updated successfully")
+                
+                // Close modal and reset form
+                setIsEditModalOpen(false)
+            } else {
+                // Create new user
+                const result = await dispatch(createUser(userData)).unwrap()
+                console.log('User creation result:', result)
+                toast.success("User created successfully")
+                
+                // Close modal and reset form
+                setIsAddModalOpen(false)
+            }
+            
+            // Reset form and refresh users list
+            resetForm()
+            await dispatch(fetchUsers())
+            
+        } catch (error: any) {
+            console.error('Error in form submission:', error)
+            const errorMessage = error?.message || error?.toString() || 'An unknown error occurred'
+            console.log('Error details:', { error })
+            toast.error(`Error: ${errorMessage}`)
+        }
+    }
+
+    // Handle edit user
+    const handleEditUser = (user: any) => {
+        console.log('Editing user:', user)
+        setCurrentUser(user)
+        setFormData({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            address: user.address,
+            role: user.role,
+            password: "" // Don't pre-fill password for security
+        })
+        setIsEditModalOpen(true)
+    }
+    
+    // Test function to directly call the delete API
+    const testDeleteUser = async (userId: string | number) => {
+        try {
+            console.log('=== Testing direct delete API call ===');
+            console.log('User ID to delete:', userId);
+            
+            const url = `http://localhost:3000/api/users/${userId}`;
+            console.log('Calling URL:', url);
+            
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+            
+            console.log('Response status:', response.status);
+            
+            try {
+                const data = await response.json();
+                console.log('Response data:', data);
+            } catch (e) {
+                console.log('No JSON response, response text:', await response.text());
+            }
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+        } catch (error) {
+            console.error('Error in testDeleteUser:', error);
+            throw error;
+        }
+    };
+    
+    // Handle delete button click
+    const handleDeleteClick = (userId: string | number) => {
+        console.log('Delete button clicked for user ID:', userId);
+        console.log('Current users list:', users);
+        
+        const userToDelete = users.find((user: any) => user._id === userId);
+        console.log('Found user to delete:', userToDelete);
+        
+        if (userToDelete) {
+            console.log('Setting current user and opening delete modal');
+            setCurrentUser(userToDelete);
+            
+            // Test the direct API call
+            testDeleteUser(userId).catch(console.error);
+            
+            // Open the modal
+            setIsDeleteModalOpen(true);
+        } else {
+            console.error('User not found with ID:', userId);
+        }
+    }
 
     return (
         <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -276,80 +570,313 @@ export default function AdminUsersPage() {
                         ))}
                     </div>
 
-                    {/* Users Section */}
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        {/* Main Users Table */}
-                        <div className="lg:col-span-3">
-                            <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-xl">
-                                <CardHeader className="border-b border-slate-700/50">
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="text-white">System Users</CardTitle>
-                                        <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
-                                            View All
-                                        </Button>
+                    <div className="mt-8">
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 overflow-hidden">
+                            <CardHeader className="border-b border-slate-700/50">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-white">Users</h3>
+                                        <p className="text-sm text-slate-400">Manage your users and their permissions</p>
                                     </div>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead>
-                                            <tr className="border-b border-slate-700/50">
-                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">NAME</th>
-                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">EMAIL</th>
-                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">ADDRESS</th>
-                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">PHONE</th>
-                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">ROLE</th>
-                                                <th className="text-left p-4 font-medium text-slate-400 text-sm">ACTIONS</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {/* Empty table - no data */}
-                                            <tr>
-                                                <td colSpan={6} className="p-12 text-center">
-                                                    <div className="flex flex-col items-center gap-4">
-                                                        <Users className="w-12 h-12 text-slate-600" />
-                                                        <p className="text-slate-400">No users found</p>
-                                                        <p className="text-slate-500 text-sm">
-                                                            Users will appear here once you add them to the system
-                                                        </p>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {/* Quick Stats Sidebar */}
-                        <div className="space-y-6">
-                            <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-xl">
-                                <CardHeader>
-                                    <CardTitle className="text-white text-lg">User Analytics</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-slate-400">New Registrations</span>
-                                        <span className="text-white font-semibold">156</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-slate-400">Active Sessions</span>
-                                        <span className="text-white font-semibold">1,234</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-slate-400">Pending Approvals</span>
-                                        <span className="text-red-400 font-semibold">8</span>
-                                    </div>
-                                    <Button className="w-full bg-red-500 hover:bg-red-600 text-white mt-4 shadow-lg shadow-red-500/30 hover:shadow-red-500/50 transition-all duration-300">
-                                        Generate Report
+                                    <Button 
+                                        onClick={() => setIsAddModalOpen(true)}
+                                        className="bg-red-600 hover:bg-red-700 text-white"
+                                    >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Add User
                                     </Button>
-                                </CardContent>
-                            </Card>
-                        </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-slate-700/50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">User</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Email</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Role</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Password</th>
+                                                <th className="px-6 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-700/50">
+                                            {users && users.length > 0 ? (
+                                                users.map((user) => (
+                                                    <tr key={user?._id || Math.random()} className="hover:bg-slate-800/50 transition-colors">
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="flex items-center">
+                                                                <div className="flex-shrink-0 h-10 w-10">
+                                                                    <Avatar>
+                                                                        <AvatarImage src={user?.avatar} alt={user?.name || 'User'} />
+                                                                        <AvatarFallback>
+                                                                            {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                                                                        </AvatarFallback>
+                                                                    </Avatar>
+                                                                </div>
+                                                                <div className="ml-4">
+                                                                    <div className="text-sm font-medium text-white">{user?.name || 'No Name'}</div>
+                                                                    <div className="text-sm text-slate-400">{user?.phone || 'No phone'}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm text-slate-300">{user?.email || 'No email'}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                                user?.role === 'admin' 
+                                                                    ? 'bg-purple-900/50 text-purple-300' 
+                                                                    : 'bg-blue-900/50 text-blue-300'
+                                                            }`}>
+                                                                {user?.role || 'customer'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm text-slate-300 font-mono">
+                                                                {user?.password ? '••••••••' : 'Not set'}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                            <div className="flex justify-end space-x-2">
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="sm" 
+                                                                    className="text-slate-400 hover:text-white hover:bg-slate-700/50"
+                                                                    onClick={() => user && handleEditUser(user)}
+                                                                >
+                                                                    <Edit className="w-4 h-4" />
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="sm" 
+                                                                    className="text-slate-400 hover:text-red-400 hover:bg-red-900/20"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (user) {
+                                                                            console.log('Delete button clicked for user:', user);
+                                                                            setCurrentUser(user);
+                                                                            setIsDeleteModalOpen(true);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan={5} className="px-6 py-4 text-center text-slate-400">
+                                                        No users found
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <Dialog open={isDeleteModalOpen} onOpenChange={(open) => {
+                console.log('Delete modal open state changed to:', open);
+                setIsDeleteModalOpen(open);
+                if (!open) setCurrentUser(null);
+            }}>
+                <DialogContent className="bg-slate-800/95 backdrop-blur-xl border-slate-700/50 max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold text-white mb-2">
+                            Delete User {currentUser?.name ? `(${currentUser.name})` : ''}
+                        </DialogTitle>
+                        <DialogDescription className="text-slate-300">
+                            {currentUser?._id 
+                                ? `Are you sure you want to delete ${currentUser.name || 'this user'}? This action cannot be undone.`
+                                : 'No user selected for deletion.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end gap-3 mt-6">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                console.log('Cancel button clicked');
+                                setIsDeleteModalOpen(false);
+                                setCurrentUser(null);
+                            }}
+                            className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                console.log('Delete button clicked, currentUser:', currentUser);
+                                if (currentUser?._id) {
+                                    handleDeleteClick(currentUser._id);
+                                } else {
+                                    console.error('No user ID available for deletion');
+                                    toast.error('No user selected for deletion');
+                                }
+                            }}
+                            className="bg-red-500 hover:bg-red-600 text-white"
+                            disabled={!currentUser?._id}
+                        >
+                            {currentUser?._id ? 'Delete User' : 'No User Selected'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit User Modal */}
+            <Dialog open={isEditModalOpen} onOpenChange={(open) => {
+                console.log('Edit modal open state changed to:', open);
+                setIsEditModalOpen(open);
+                if (!open) setCurrentUser(null);
+            }}>
+                <DialogContent className="bg-slate-800/95 backdrop-blur-xl border-slate-700/50 max-w-2xl shadow-2xl shadow-red-500/10">
+                    <DialogHeader className="border-b border-slate-700/50 pb-4">
+                        <div className="flex items-center justify-between">
+                            <DialogTitle className="text-xl font-bold text-white">
+                                {currentUser?._id ? 'Edit User' : 'Add New User'}
+                            </DialogTitle>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setIsEditModalOpen(false);
+                                    setCurrentUser(null);
+                                }}
+                                className="text-slate-400 hover:text-white hover:bg-red-500/10"
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmit} className="py-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="edit-name" className="text-slate-300 font-medium">
+                                        Full Name
+                                    </Label>
+                                    <Input
+                                        id="edit-name"
+                                        value={formData.name}
+                                        onChange={(e) => handleInputChange('name', e.target.value)}
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
+                                        placeholder="Enter full name"
+                                    />
+                                    {formErrors.name && <p className="text-red-400 text-xs mt-1">{formErrors.name}</p>}
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="edit-email" className="text-slate-300 font-medium">
+                                        Email Address
+                                    </Label>
+                                    <Input
+                                        id="edit-email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => handleInputChange('email', e.target.value)}
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
+                                        placeholder="Enter email address"
+                                    />
+                                    {formErrors.email && <p className="text-red-400 text-xs mt-1">{formErrors.email}</p>}
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="edit-password" className="text-slate-300 font-medium">
+                                        New Password {!currentUser?._id && "*"}
+                                    </Label>
+                                    <Input
+                                        id="edit-password"
+                                        type="password"
+                                        value={formData.password || ''}
+                                        onChange={(e) => handleInputChange('password', e.target.value)}
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
+                                        placeholder="Leave blank to keep current password"
+                                        required={!currentUser?._id}
+                                    />
+                                    {formErrors.password && <p className="text-red-400 text-xs mt-1">{formErrors.password}</p>}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="edit-phone" className="text-slate-300 font-medium">
+                                        Phone Number
+                                    </Label>
+                                    <Input
+                                        id="edit-phone"
+                                        value={formData.phone}
+                                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
+                                        placeholder="Enter phone number"
+                                    />
+                                    {formErrors.phone && <p className="text-red-400 text-xs mt-1">{formErrors.phone}</p>}
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="edit-role" className="text-slate-300 font-medium">
+                                        Role
+                                    </Label>
+                                    <Select
+                                        value={formData.role}
+                                        onValueChange={(value: "admin" | "customer") => handleInputChange('role', value)}
+                                    >
+                                        <SelectTrigger className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white">
+                                            <SelectValue placeholder="Select role" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-slate-800 border-slate-700">
+                                            <SelectItem value="admin" className="hover:bg-slate-700">Admin</SelectItem>
+                                            <SelectItem value="customer" className="hover:bg-slate-700">Customer</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <Label htmlFor="edit-address" className="text-slate-300 font-medium">
+                                        Address
+                                    </Label>
+                                    <Textarea
+                                        id="edit-address"
+                                        value={formData.address}
+                                        onChange={(e) => handleInputChange('address', e.target.value)}
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300 min-h-[100px]"
+                                        placeholder="Enter full address"
+                                    />
+                                    {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex justify-end space-x-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    setIsEditModalOpen(false);
+                                    setCurrentUser(null);
+                                }}
+                                className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
+                            >
+                                Cancel
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 hover:shadow-red-500/50"
+                            >
+                                {currentUser?._id ? 'Update User' : 'Create User'}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             {/* Add User Modal */}
             <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
@@ -377,9 +904,12 @@ export default function AdminUsersPage() {
                                     </Label>
                                     <Input
                                         id="name"
+                                        value={formData.name}
+                                        onChange={(e) => handleInputChange('name', e.target.value)}
                                         className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
                                         placeholder="Enter full name"
                                     />
+                                    {formErrors.name && <p className="text-red-400 text-xs mt-1">{formErrors.name}</p>}
                                 </div>
 
                                 <div>
@@ -389,21 +919,28 @@ export default function AdminUsersPage() {
                                     <Input
                                         id="email"
                                         type="email"
+                                        value={formData.email}
+                                        onChange={(e) => handleInputChange('email', e.target.value)}
                                         className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
                                         placeholder="Enter email address"
                                     />
+                                    {formErrors.email && <p className="text-red-400 text-xs mt-1">{formErrors.email}</p>}
                                 </div>
 
                                 <div>
                                     <Label htmlFor="password" className="text-slate-300 font-medium">
-                                        Password (Optional)
+                                        Password {!currentUser?._id && "*"}
                                     </Label>
                                     <Input
                                         id="password"
                                         type="password"
+                                        value={formData.password || ''}
+                                        onChange={(e) => handleInputChange('password', e.target.value)}
                                         className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
                                         placeholder="Enter password"
+                                        required={!currentUser?._id}
                                     />
+                                    {formErrors.password && <p className="text-red-400 text-xs mt-1">{formErrors.password}</p>}
                                 </div>
                             </div>
 
@@ -414,16 +951,22 @@ export default function AdminUsersPage() {
                                     </Label>
                                     <Input
                                         id="phone"
+                                        value={formData.phone}
+                                        onChange={(e) => handleInputChange('phone', e.target.value)}
                                         className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300"
                                         placeholder="Enter phone number"
                                     />
+                                    {formErrors.phone && <p className="text-red-400 text-xs mt-1">{formErrors.phone}</p>}
                                 </div>
 
                                 <div>
                                     <Label htmlFor="role" className="text-slate-300 font-medium">
                                         User Role
                                     </Label>
-                                    <Select>
+                                    <Select 
+                                        value={formData.role} 
+                                        onValueChange={(value: 'admin' | 'customer') => handleInputChange('role', value)}
+                                    >
                                         <SelectTrigger className="bg-slate-700/50 border-slate-600 focus:border-red-500 mt-2 text-white">
                                             <SelectValue placeholder="Select user role" />
                                         </SelectTrigger>
@@ -440,9 +983,12 @@ export default function AdminUsersPage() {
                                     </Label>
                                     <Textarea
                                         id="address"
+                                        value={formData.address}
+                                        onChange={(e) => handleInputChange('address', e.target.value)}
                                         className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 min-h-[80px] transition-all duration-300"
                                         placeholder="Enter full address"
                                     />
+                                    {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}
                                 </div>
                             </div>
                         </div>
@@ -456,9 +1002,22 @@ export default function AdminUsersPage() {
                         >
                             Cancel
                         </Button>
-                        <Button className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 hover:shadow-red-500/50 transform hover:scale-105 transition-all duration-300">
-                            <Save className="w-4 h-4 mr-2" />
-                            Save User
+                        <Button 
+                            className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 hover:shadow-red-500/50 transform hover:scale-105 transition-all duration-300"
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-4 h-4 mr-2" />
+                                    Save User
+                                </>
+                            )}
                         </Button>
                     </div>
                 </DialogContent>
