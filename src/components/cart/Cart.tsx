@@ -1,10 +1,18 @@
-import { useState } from 'react';
-import { X, Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Button } from '../ui/button';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { removeItemFromCart, updateQuantity, selectCartItems, selectCartTotalAmount } from '@/slices/cartSlice';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, ShoppingCart, Trash2, Plus, Minus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  selectCartItems, 
+  selectCartTotalAmount, 
+  selectCartTotalQuantity, 
+  clearCart, 
+  removeItemFromCart, 
+  updateQuantity, 
+  addItemToCart 
+} from '@/slices/cartSlice';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 
 interface CartProps {
   isOpen: boolean;
@@ -12,13 +20,40 @@ interface CartProps {
 }
 
 export function Cart({ isOpen, onClose }: CartProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const items = useSelector(selectCartItems);
-  const totalAmount = useSelector(selectCartTotalAmount);
-  const itemCount = items.reduce((total, item) => total + (item.quantity || 0), 0);
+  const items = useAppSelector(selectCartItems);
+  const totalQuantity = useAppSelector(selectCartTotalQuantity);
+  const totalAmount = useAppSelector(selectCartTotalAmount);
+  const itemCount = totalQuantity; // Use the value we already have from useAppSelector
+  const [isMounted, setIsMounted] = useState(false);
 
-  console.log('Cart items:', items);
+  // Debug: Log cart state whenever it changes
+  useEffect(() => {
+    console.log('Cart state updated:', { items, totalQuantity, totalAmount });
+  }, [items, totalQuantity, totalAmount]);
+
+  // Debug: Log initial cart state from localStorage
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cart');
+    console.log('Initial cart from localStorage:', savedCart ? JSON.parse(savedCart) : 'No cart data');
+  }, []);
+
+  // Debug logs
+  useEffect(() => {
+    console.log('Cart mounted/updated. Items:', items, 'Total:', totalAmount, 'Count:', itemCount);
+  }, [items, totalAmount, itemCount]);
+
+  // Set mounted state to prevent hydration issues
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+
+  // Don't render anything on the server or if not mounted yet
+  if (!isMounted) {
+    return null;
+  }
 
   const handleRemoveFromCart = (id: string) => {
     dispatch(removeItemFromCart(id));
@@ -35,6 +70,30 @@ export function Cart({ isOpen, onClose }: CartProps) {
   const handleCheckout = () => {
     onClose();
     navigate('/checkout');
+  };
+
+  // Debug function to clear cart
+  const handleClearCart = () => {
+    dispatch(clearCart());
+    console.log('Cart cleared');
+  };
+
+  // Debug function to add a test product
+  const handleAddTestProduct = () => {
+    const testProduct = {
+      id: 'test-' + Date.now(),
+      _id: 'test-' + Date.now(),
+      title: 'Test Product',
+      name: 'Test Product',
+      price: 99.99,
+      description: 'This is a test product',
+      image: '/images/network.jpg',
+      images: ['/images/network.jpg'],
+      stock: 10
+    };
+    
+    console.log('Adding test product:', testProduct);
+    dispatch(addItemToCart(testProduct));
   };
 
   if (!isOpen) return null;
@@ -97,11 +156,11 @@ export function Cart({ isOpen, onClose }: CartProps) {
             ) : (
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="group relative flex items-center space-x-4 p-4 bg-gray-900/80 backdrop-blur-sm border border-gray-800 rounded-xl hover:border-red-500/50 transition-all duration-300 overflow-hidden">
+                  <div key={item.id || item._id} className="group relative flex items-center space-x-4 p-4 bg-gray-900/80 backdrop-blur-sm border border-gray-800 rounded-xl hover:border-red-500/50 transition-all duration-300 overflow-hidden">
                     <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 border-gray-800 group-hover:border-red-500/50 transition-all duration-300">
                       <img
-                        src={item.image || '/images/network.jpg'}
-                        alt={item.name || 'Product'}
+                        src={item.image || (item.images && item.images.length > 0 ? item.images[0] : '/images/network.jpg')}
+                        alt={item.title || item.name || 'Product'}
                         className="h-full w-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -149,6 +208,33 @@ export function Cart({ isOpen, onClose }: CartProps) {
               </div>
             )}
           </div>
+
+          {/* Debug Section - Only show in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="p-4 bg-yellow-900/20 border-t border-yellow-800/50">
+              <h4 className="text-yellow-400 text-sm font-medium mb-2">Debug</h4>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleAddTestProduct}
+                  className="px-3 py-1.5 text-xs bg-green-700/50 hover:bg-green-600/70 text-green-100 rounded-md transition-colors"
+                >
+                  Add Test Product
+                </button>
+                <button
+                  onClick={handleClearCart}
+                  className="px-3 py-1.5 text-xs bg-yellow-700/50 hover:bg-yellow-600/70 text-yellow-100 rounded-md transition-colors"
+                >
+                  Clear Cart
+                </button>
+                <button
+                  onClick={() => console.log('Cart state:', { items, totalQuantity, totalAmount })}
+                  className="px-3 py-1.5 text-xs bg-blue-700/50 hover:bg-blue-600/70 text-blue-100 rounded-md transition-colors"
+                >
+                  Log Cart State
+                </button>
+              </div>
+            </div>
+          )}
 
           {items.length > 0 && (
             <motion.div 

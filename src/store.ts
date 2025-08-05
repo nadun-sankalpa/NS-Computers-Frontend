@@ -1,15 +1,28 @@
-// src/store/store.ts
 import { configureStore } from '@reduxjs/toolkit';
-import productReducer from "@/slices/productSlice"; // Import your product slice
-import cartReducer from './slices/cartSlice'; // Assuming you have a cartSlice
+import { useDispatch, useSelector } from 'react-redux';
+import type { TypedUseSelectorHook } from 'react-redux';
+import productReducer from "@/slices/productSlice";
+import cartReducer from '@/features/cart/cartSlice';
+import userReducer from '@/slices/userSlice';
+import orderReducer from '@/slices/orderSlice';
 
 export const store = configureStore({
   reducer: {
     product: productReducer,
-    cart: cartReducer, // Include your cart reducer
-    // ... add other reducers here as your app grows
+    cart: cartReducer,
+    users: userReducer,
+    orders: orderReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 });
 
+// Infer the RootState and AppDispatch types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+// Use throughout your app instead of plain `useDispatch` and `useSelector`
+export const useAppDispatch = () => useDispatch<AppDispatch>();
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

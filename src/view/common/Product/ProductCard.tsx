@@ -6,10 +6,9 @@ import { Star, ShoppingCart, Heart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import type { ProductData } from "../../../model/ProductData"
-import { useDispatch, useSelector } from "react-redux"
-import type { AppDispatch, RootState } from "../../../store/store"
-import { addItemToCart } from "../../../slices/cartSlice"
+import type { ProductData } from "@/model/ProductData"
+import { useAppDispatch, useAppSelector } from "@/app/hooks"
+import { addToCart, selectCartItems } from "@/features/cart/cartSlice"
 
 type ProductCardProps = {
     data: ProductData;
@@ -24,12 +23,9 @@ export function ProductCard({ data, onAddToCart }: ProductCardProps) {
     const [isLiked, setIsLiked] = useState(false)
     const [isAddingToCart, setIsAddingToCart] = useState(false)
 
-    const dispatch = useDispatch<AppDispatch>()
-
-    // Check if the item is already in the cart
-    const cartItem = useSelector((state: RootState) =>
-        state.cart.items.find(item => item.id === data.id || item._id === data.id || item.id === data._id)
-    )
+    const dispatch = useAppDispatch();
+    const cartItems = useAppSelector(selectCartItems);
+    const cartItem = cartItems.find(item => item.id === (data.id || data._id));
 
     const handleAddToCart = () => {
         if (data.stock <= 0) return; // Prevent adding out of stock items
@@ -37,41 +33,31 @@ export function ProductCard({ data, onAddToCart }: ProductCardProps) {
         setIsAddingToCart(true);
         
         try {
-            // Get the product image from the data or use the getProductImage function
-            const productImage = data.image || getProductImage();
-            
-            // Debug log to see what we're working with
-            console.log('Product data:', data);
-            console.log('Product image from data:', data.image);
-            console.log('getProductImage() result:', getProductImage());
-            console.log('Final productImage:', productImage);
+            // Get the product image - use the first image from images array, then fall back to image, then use default
+            const productImage = (data.images && data.images.length > 0) 
+                ? data.images[0] 
+                : data.image || '/images/network.jpg';
             
             // Create a cart item with the correct structure expected by the cart slice
             const cartItem = {
-                ...data,
                 id: data.id || data._id, // Ensure we have an id
-                _id: data._id || data.id, // Ensure we have an _id
-                quantity: 1, // This will be set by the cart slice
-                price: typeof data.price === 'number' ? data.price : Number(data.price) || 0, // Ensure price is a number
-                image: productImage // Include the image in the cart item
+                name: data.name || data.title || 'Unnamed Product',
+                price: typeof data.price === 'number' ? data.price : Number(data.price) || 0,
+                image: productImage,
+                stock: data.stock || 1,
             };
             
-            console.log('Cart item being dispatched:', cartItem);
+            console.log('Adding to cart:', cartItem);
             
-            // Dispatch the action (no need for .unwrap() since it's not an async thunk)
-            dispatch(addItemToCart(cartItem));
-            
-            // Call the onAddToCart callback if provided
+            // Only dispatch addToCart if onAddToCart is not provided
+            // If onAddToCart is provided, it will handle the dispatch
             if (onAddToCart) {
                 onAddToCart();
+            } else {
+                dispatch(addToCart(cartItem));
             }
-            
-            // You could add a success notification here if needed
-            // toast.success('Item added to cart!');
         } catch (error) {
             console.error('Failed to add to cart:', error);
-            // You could show an error toast here
-            // toast.error('Failed to add item to cart');
         } finally {
             setIsAddingToCart(false);
         }
@@ -202,7 +188,7 @@ export function ProductCard({ data, onAddToCart }: ProductCardProps) {
     
     const imageUrl = getProductImage();
     const isOutOfStock = data.stock <= 0;
-    const alreadyInCart = cartItem !== undefined;
+    const alreadyInCart = Boolean(cartItem);
 
 
     return (

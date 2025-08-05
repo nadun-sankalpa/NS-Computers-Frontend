@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useEffect, FormEvent } from "react"
-import { useDispatch, useSelector } from "react-redux"
+import { useDispatch } from "react-redux"
 import {
     fetchOrders,
     createOrder,
     updateOrder,
     deleteOrder,
-    selectOrders,
-    type Order
 } from "@/slices/orderSlice"
+import { useAppSelector } from "@/store";
+import { selectAllOrdersData } from "@/slices/selectors/orderSelectors";
 import type { AppDispatch, RootState } from "@/store/store"
 import {
     Search,
@@ -133,9 +133,7 @@ const getStatusBadge = (status: Order['status']) => {
 
 export default function AdminOrdersPage() {
     const dispatch = useDispatch<AppDispatch>();
-    const orders = useSelector(selectOrders);
-    const isLoading = useSelector((state: RootState) => state.orders.isLoading);
-    const error = useSelector((state: RootState) => state.orders.error);
+    const { orders, isLoading, error } = useAppSelector(selectAllOrdersData);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);

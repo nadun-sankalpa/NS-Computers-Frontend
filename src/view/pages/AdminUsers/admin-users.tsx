@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
+import { useAppSelector } from '@/store'
+import { selectAllUsersData } from '@/slices/selectors/userSelectors'
 import { toast } from 'sonner'
 import {
     Search,
@@ -113,7 +115,7 @@ const AnimatedBackground = () => {
 
 export default function AdminUsersPage() {
     const dispatch = useDispatch()
-    const { users, isLoading, error } = useSelector((state: any) => state.users || { users: [], isLoading: false, error: null })
+    const { users, isLoading, error } = useAppSelector(selectAllUsersData)
 
     // Form state
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)

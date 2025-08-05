@@ -1,14 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Menu, X, Facebook, Instagram } from "lucide-react"
+import { Menu, X, Facebook, Instagram, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Link } from "react-router-dom"
+import { CartSidebar } from "@/components/cart/CartSidebar"
+import { useAppSelector } from "@/app/hooks"
+import { selectCartItems } from "@/features/cart/cartSlice"
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [isCartOpen, setIsCartOpen] = useState(false)
     const [isScrolled, setIsScrolled] = useState(false)
+    const cartItems = useAppSelector(selectCartItems)
+    const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0)
 
     useEffect(() => {
         const handleScroll = () => {
@@ -42,7 +48,18 @@ export default function Navbar() {
                         <span>|</span>
                         <span>INSTALMENT PLANS</span>
                         <span>|</span>
-                        <span>MY CART</span>
+                        <button 
+                            onClick={() => setIsCartOpen(true)}
+                            className="hover:underline flex items-center gap-1"
+                            aria-label="View cart"
+                        >
+                            MY CART
+                            {cartItemCount > 0 && (
+                                <span className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                                    {cartItemCount}
+                                </span>
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -137,6 +154,12 @@ export default function Navbar() {
                     </div>
                 </div>
             </nav>
+
+            {/* Cart Sidebar */}
+            <CartSidebar 
+                isOpen={isCartOpen} 
+                onClose={() => setIsCartOpen(false)} 
+            />
         </div>
     )
 }
