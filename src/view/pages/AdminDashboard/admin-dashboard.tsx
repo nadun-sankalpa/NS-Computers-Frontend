@@ -206,6 +206,7 @@ export default function AdminDashboardPage() {
                         <Button
                             variant="outline"
                             className="w-full border-red-500/40 text-red-400 hover:bg-red-500/15 hover:border-red-500/60 transition-all duration-300 bg-transparent shadow-lg shadow-red-500/10 hover:shadow-red-500/20"
+                            onClick={() => window.location.href = '/login'}
                         >
                             <LogOut className="w-4 h-4 mr-2" />
                             Logout

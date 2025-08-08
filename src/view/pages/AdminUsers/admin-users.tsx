@@ -510,66 +510,67 @@ export default function AdminUsersPage() {
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        {[
-                            {
-                                title: "Total Users",
-                                value: "2,847",
-                                icon: Users,
-                                change: "15.2% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-red-400",
-                                bgGlow: "shadow-red-500/10",
-                            },
-                            {
-                                title: "Active Users",
-                                value: "2,156",
-                                icon: UserCheck,
-                                change: "8.7% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-cyan-400",
-                                bgGlow: "shadow-cyan-500/10",
-                            },
-                            {
-                                title: "Admin Users",
-                                value: "23",
-                                icon: Shield,
-                                change: "2 new this week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-purple-400",
-                                bgGlow: "shadow-purple-500/10",
-                            },
-                            {
-                                title: "Customer Users",
-                                value: "2,824",
-                                icon: Package,
-                                change: "12.8% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-yellow-400",
-                                bgGlow: "shadow-yellow-500/10",
-                            },
-                        ].map((stat) => (
-                            <Card
-                                key={stat.title}
-                                className={`bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl ${stat.bgGlow}`}
-                            >
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-slate-400 text-sm font-medium">{stat.title}</p>
-                                            <p className="text-2xl font-bold mt-1 text-white">{stat.value}</p>
-                                            <p className={`text-sm mt-1 ${stat.changeColor}`}>
-                                                {stat.change.includes("-") ? "↓" : "↑"} {stat.change}
-                                            </p>
-                                        </div>
-                                        <div
-                                            className={`w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg ${stat.bgGlow}`}
-                                        >
-                                            <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
-                                        </div>
+                        {/* Total Users */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl shadow-red-500/10">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Total Users</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{users.length}</p>
+                                        {/* You can calculate change% if you have last week's data */}
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} from last week</p>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg shadow-red-500/10">
+                                        <Users className="w-6 h-6 text-red-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Active Users */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl shadow-cyan-500/10">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Active Users</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{users.filter(u => u.active).length}</p>
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} from last week</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+                                        <UserCheck className="w-6 h-6 text-cyan-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Admin Users */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl shadow-purple-500/10">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Admin Users</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{users.filter(u => u.role === 'admin').length}</p>
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} new this week</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg shadow-purple-500/10">
+                                        <Shield className="w-6 h-6 text-purple-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Customer Users */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl shadow-yellow-500/10">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Customer Users</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{users.filter(u => u.role === 'customer').length}</p>
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} from last week</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg shadow-yellow-500/10">
+                                        <Package className="w-6 h-6 text-yellow-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     <div className="mt-8">
@@ -597,7 +598,7 @@ export default function AdminUsersPage() {
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">User</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Email</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Role</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Password</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">User ID</th>
                                                 <th className="px-6 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">Actions</th>
                                             </tr>
                                         </thead>
@@ -634,9 +635,7 @@ export default function AdminUsersPage() {
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm text-slate-300 font-mono">
-                                                                {user?.password ? '••••••••' : 'Not set'}
-                                                            </div>
+                                                            <div className="text-sm text-slate-300 font-mono">{user?._id || 'N/A'}</div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                             <div className="flex justify-end space-x-2">
@@ -849,7 +848,7 @@ export default function AdminUsersPage() {
                                         id="edit-address"
                                         value={formData.address}
                                         onChange={(e) => handleInputChange('address', e.target.value)}
-                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 transition-all duration-300 min-h-[100px]"
+                                        className="bg-slate-700/50 border-slate-600 focus:border-red-500 focus:shadow-lg focus:shadow-red-500/20 mt-2 text-white placeholder:text-slate-400 min-h-[100px] transition-all duration-300"
                                         placeholder="Enter full address"
                                     />
                                     {formErrors.address && <p className="text-red-400 text-xs mt-1">{formErrors.address}</p>}

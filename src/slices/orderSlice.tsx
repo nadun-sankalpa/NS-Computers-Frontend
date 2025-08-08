@@ -69,23 +69,29 @@ export const createOrder = createAsyncThunk(
     'orders/createOrder',
     async (orderData: Omit<Order, '_id' | 'createdAt' | 'updatedAt' | 'orderNumber'>, { rejectWithValue }) => {
         try {
-            console.log('Sending order data:', orderData);
-            console.log('Sending request to create order:', {
-                url: 'http://localhost:3000/api/orders/save-order',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(orderData),
-            });
-            
+            // Adapt orderData to match backend requirements
+            // If orderData.items exists and is an array, use first item's name as itemName
+            let itemName = '';
+            let itemPrice = 0;
+            if (orderData.items && Array.isArray(orderData.items) && orderData.items.length > 0) {
+                itemName = orderData.items[0].name || '';
+                itemPrice = orderData.items[0].price || 0;
+            }
+            const payload = {
+                userId: orderData.userId,
+                username: orderData.username,
+                itemName,
+                itemPrice,
+                status: orderData.status || 'pending',
+            };
+            console.log('Sending order payload:', payload);
             const response = await fetch('http://localhost:3000/api/orders/save-order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include', // Include cookies for authentication if needed
-                body: JSON.stringify(orderData),
+                body: JSON.stringify(payload),
             });
             
             let data;

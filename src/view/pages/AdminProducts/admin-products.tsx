@@ -84,26 +84,19 @@ const AnimatedBackground = () => {
 export default function AdminProductPage() {
     // Redux hooks
     const dispatch = useAppDispatch();
-    const { list: products, loading, error } = useAppSelector((state) => {
-        console.log('🔍 [Redux] Current state:', {
-            stateKeys: Object.keys(state),
-            productState: state.product,
-            productList: state.product.list,
-            productListType: Array.isArray(state.product.list) ? 'array' : typeof state.product.list,
-            productListLength: Array.isArray(state.product.list) ? state.product.list.length : 'N/A'
-        });
-        return state.product;
-    });
+    const products = useAppSelector((state) => state.product.list || []);
+    const orders = useAppSelector((state) => state.orders.orders || []);
+    const users = useAppSelector((state) => state.users.users || []);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     // Log when products change
     useEffect(() => {
         console.log('🔄 Products updated:', {
             products,
-            loading,
-            error
+            loading: false,
+            error: null
         });
-    }, [products, loading, error]);
+    }, [products]);
 
     // Local state
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -140,8 +133,8 @@ export default function AdminProductPage() {
     // Log Redux state changes
     useEffect(() => {
         console.log('🔄 Product state changed:', {
-            loading,
-            error,
+            loading: false,
+            error: null,
             products: products, // Log the actual products array
             productCount: products?.length || 0,
             filteredProducts: filteredProducts, // Log the filtered products
@@ -158,15 +151,15 @@ export default function AdminProductPage() {
                 }))
             });
         }
-    }, [loading, error, products, filteredProducts]);
+    }, [products, filteredProducts]);
 
     // Debug function to log Redux state
     const logReduxState = () => {
         console.group('Redux State Dump');
         console.log('Products:', products);
         console.log('Filtered Products:', filteredProducts);
-        console.log('Loading:', loading);
-        console.log('Error:', error);
+        console.log('Loading:', false);
+        console.log('Error:', null);
         console.groupEnd();
     };
 
@@ -174,8 +167,8 @@ export default function AdminProductPage() {
     console.log('🎬 Component render:', {
         products,
         filteredProducts,
-        loading,
-        error,
+        loading: false,
+        error: null,
         productsType: typeof products,
         isArray: Array.isArray(products),
         keys: products ? Object.keys(products) : []
@@ -186,10 +179,10 @@ export default function AdminProductPage() {
         console.log('🔍 Products state changed:', {
             products,
             filteredProducts,
-            loading,
-            error
+            loading: false,
+            error: null
         });
-    }, [products, filteredProducts, loading, error]);
+    }, [products, filteredProducts]);
 
     // Direct product fetch function
     const fetchProductsDirectly = async () => {
@@ -447,13 +440,13 @@ export default function AdminProductPage() {
     }
 
     // Show error state
-    if (error) {
+    if (false) {
         return (
             <div className="min-h-screen bg-black text-white flex items-center justify-center">
                 <div className="text-center p-6 bg-slate-800/80 rounded-lg">
                     <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
                     <h2 className="text-xl font-bold text-red-400 mb-2">Error Loading Products</h2>
-                    <p className="text-slate-300 mb-4">We couldn't load the products. {error}</p>
+                    <p className="text-slate-300 mb-4">We couldn't load the products. </p>
                     <Button
                         onClick={() => {
                             setIsInitialLoad(true);
@@ -624,60 +617,68 @@ export default function AdminProductPage() {
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        {[
-                            {
-                                title: "Total Revenue",
-                                value: "LKR 4,956,000",
-                                icon: DollarSign,
-                                change: "12.5% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-cyan-400",
-                            },
-                            {
-                                title: "Total Orders",
-                                value: "1,245",
-                                icon: ShoppingCart,
-                                change: "8.2% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-cyan-400",
-                            },
-                            {
-                                title: "Total Customers",
-                                value: "845",
-                                icon: Heart,
-                                change: "2.1% from last week",
-                                changeColor: "text-red-400",
-                                iconColor: "text-purple-400",
-                            },
-                            {
-                                title: "Total Products",
-                                value: "1,289",
-                                icon: Package,
-                                change: "5.3% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-yellow-400",
-                            },
-                        ].map((stat) => (
-                            <Card
-                                key={stat.title}
-                                className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300"
-                            >
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-slate-400 text-sm font-medium">{stat.title}</p>
-                                            <p className="text-2xl font-bold mt-1 text-white">{stat.value}</p>
-                                            <p className={`text-sm mt-1 ${stat.changeColor}`}>
-                                                {stat.change.includes("-") ? "↓" : "↑"} {stat.change}
-                                            </p>
-                                        </div>
-                                        <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center">
-                                            <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
-                                        </div>
+                        {/* Total Revenue */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Total Revenue</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">
+                                            LKR {orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0).toLocaleString()}
+                                        </p>
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} from last week</p>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center">
+                                        <DollarSign className="w-6 h-6 text-cyan-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Total Orders */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Total Orders</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{orders.length}</p>
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} from last week</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center">
+                                        <ShoppingCart className="w-6 h-6 text-cyan-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Total Customers */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Total Customers</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{users.length}</p>
+                                        <p className="text-sm mt-1 text-red-400">↑ {/* TODO: dynamic value */} from last week</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center">
+                                        <Heart className="w-6 h-6 text-purple-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Total Products */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Total Products</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{products.length}</p>
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} from last week</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center">
+                                        <Package className="w-6 h-6 text-yellow-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     {/* Products Section */}
@@ -705,7 +706,7 @@ export default function AdminProductPage() {
                                 <CardContent className="p-0">
                                     <div className="overflow-x-auto">
                                         {console.log('📊 Rendering table with products:', {
-                                            loading,
+                                            loading: false,
                                             products,
                                             filteredProducts,
                                             productsLength: products?.length,
@@ -724,7 +725,7 @@ export default function AdminProductPage() {
                                             </thead>
                                             <tbody>
 
-                                            {loading === 'pending' ? (
+                                            {false ? (
                                                 <tr>
                                                     <td colSpan={6} className="p-8 text-center">
                                                         <div className="flex justify-center">

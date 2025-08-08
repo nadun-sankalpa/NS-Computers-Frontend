@@ -131,6 +131,39 @@ const getStatusBadge = (status: Order['status']) => {
     }
 };
 
+// --- Direct API call to backend for saving order (matching user JSON) ---
+const saveOrderToBackend = async (orderData: {
+    userId: number;
+    username: string;
+    itemName: string;
+    itemPrice: number;
+    status: string;
+}) => {
+    try {
+        const response = await fetch("http://localhost:5000/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderData),
+        });
+        if (!response.ok) throw new Error("Failed to save order");
+        const data = await response.json();
+        toast.success("Order sent to backend!");
+        return data;
+    } catch (error: any) {
+        toast.error(error.message || "Error saving order");
+        throw error;
+    }
+};
+
+// Example usage: call this function with the required order data
+// saveOrderToBackend({
+//     userId: 2,
+//     username: "charitha",
+//     itemName: "Gaming Laptop",
+//     itemPrice: 1200.00,
+//     status: "pending"
+// });
+
 export default function AdminOrdersPage() {
     const dispatch = useDispatch<AppDispatch>();
     const { orders, isLoading, error } = useAppSelector(selectAllOrdersData);
@@ -523,67 +556,66 @@ export default function AdminOrdersPage() {
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        {/* Static stats cards for now */}
-                        {[
-                            {
-                                title: "Total Orders",
-                                value: "3,247",
-                                icon: ShoppingCart,
-                                change: "18.5% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-red-400",
-                                bgGlow: "shadow-red-500/15",
-                            },
-                            {
-                                title: "Pending Orders",
-                                value: "156",
-                                icon: Clock,
-                                change: "12 new today",
-                                changeColor: "text-yellow-400",
-                                iconColor: "text-yellow-400",
-                                bgGlow: "shadow-yellow-500/15",
-                            },
-                            {
-                                title: "Shipped Orders",
-                                value: "2,891",
-                                icon: Truck,
-                                change: "15.2% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-cyan-400",
-                                bgGlow: "shadow-cyan-500/15",
-                            },
-                            {
-                                title: "Total Revenue",
-                                value: "LKR 8,456,200",
-                                icon: DollarSign,
-                                change: "22.8% from last week",
-                                changeColor: "text-green-400",
-                                iconColor: "text-green-400",
-                                bgGlow: "shadow-green-500/15",
-                            },
-                        ].map((stat) => (
-                            <Card
-                                key={stat.title}
-                                className={`bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl ${stat.bgGlow} hover:transform hover:scale-105`}
-                            >
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-slate-400 text-sm font-medium">{stat.title}</p>
-                                            <p className="text-2xl font-bold mt-1 text-white">{stat.value}</p>
-                                            <p className={`text-sm mt-1 ${stat.changeColor}`}>
-                                                {stat.change.includes("-") ? "↓" : "↑"} {stat.change}
-                                            </p>
-                                        </div>
-                                        <div
-                                            className={`w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg ${stat.bgGlow} animate-pulse`}
-                                        >
-                                            <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
-                                        </div>
+                        {/* Total Orders */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl shadow-red-500/15 hover:transform hover:scale-105">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Total Orders</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{orders.length}</p>
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} from last week</p>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg shadow-red-500/15 animate-pulse">
+                                        <ShoppingCart className="w-6 h-6 text-red-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Pending Orders */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl shadow-yellow-500/15 hover:transform hover:scale-105">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Pending Orders</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{orders.filter(o => o.status === 'pending').length}</p>
+                                        <p className="text-sm mt-1 text-yellow-400">↑ {/* TODO: dynamic value */} new today</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg shadow-yellow-500/15 animate-pulse">
+                                        <Clock className="w-6 h-6 text-yellow-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Shipped Orders */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl shadow-cyan-500/15 hover:transform hover:scale-105">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Shipped Orders</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">{orders.filter(o => o.status === 'shipped').length}</p>
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} from last week</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg shadow-cyan-500/15 animate-pulse">
+                                        <Truck className="w-6 h-6 text-cyan-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Total Revenue */}
+                        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:shadow-xl shadow-green-500/15 hover:transform hover:scale-105">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium">Total Revenue</p>
+                                        <p className="text-2xl font-bold mt-1 text-white">LKR {orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0).toLocaleString()}</p>
+                                        <p className="text-sm mt-1 text-green-400">↑ {/* TODO: dynamic value */} from last week</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center shadow-lg shadow-green-500/15 animate-pulse">
+                                        <DollarSign className="w-6 h-6 text-green-400" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     {/* Orders Section */}
