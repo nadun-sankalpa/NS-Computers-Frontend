@@ -2,6 +2,8 @@ import { X, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { selectCartItems, selectTotalPrice, updateQuantity, removeItem } from "@/features/cart/cartSlice";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type CartSidebarProps = {
   isOpen: boolean;
@@ -12,6 +14,8 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector(selectCartItems);
   const totalPrice = useAppSelector(selectTotalPrice);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleQuantityChange = (id: string, newQuantity: number) => {
     dispatch(updateQuantity({ id, quantity: newQuantity }));
@@ -19,6 +23,15 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
 
   const handleRemoveItem = (id: string) => {
     dispatch(removeItem(id));
+  };
+
+  const handleCheckout = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      onClose();
+      navigate('/order-summary');
+    }, 1500);
   };
 
   if (!isOpen) return null;
@@ -135,8 +148,12 @@ export const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
               <span className="text-gray-300">Total:</span>
               <span className="text-white">${totalPrice.toFixed(2)}</span>
             </div>
-            <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-              Proceed to Checkout
+            <Button
+              onClick={handleCheckout}
+              disabled={cartItems.length === 0 || loading}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Processing...' : 'Proceed to Checkout'}
             </Button>
             <button 
               onClick={onClose}

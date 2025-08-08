@@ -8,6 +8,7 @@ import { ShoppingCart } from "../../pages/ShoppingCart/ShoppingCart.tsx";
 import ServicesPage from "../../pages/Service/services";
 import { ProductCard } from "../Product/ProductCard.tsx";
 
+// No changes required here, routes handled in App.tsx
 
 export function MainContent() {
     return (

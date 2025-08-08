@@ -18,6 +18,8 @@ import { useState, useEffect } from "react";
 import { Provider, useDispatch } from 'react-redux';
 import { store } from "./store";
 import { loadCart } from "@/features/cart/cartSlice";
+import OrderSummary from './view/pages/OrderSummary/OrderSummary';
+import OrderSuccess from './view/pages/OrderSuccess/OrderSuccess';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole = 'user' }: { children: React.ReactNode, requiredRole?: 'user' | 'admin' }) => {
@@ -112,6 +114,18 @@ function App() {
                             </ProtectedRoute>
                         } />
                     </Route>
+
+                    {/* Order summary and success routes */}
+                    <Route path="/order-summary" element={
+                        <ProtectedRoute>
+                            <OrderSummary />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/order-success" element={
+                        <ProtectedRoute>
+                            <OrderSuccess />
+                        </ProtectedRoute>
+                    } />
 
                     {/* Admin protected routes */}
                     <Route

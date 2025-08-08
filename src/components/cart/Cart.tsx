@@ -68,8 +68,12 @@ export function Cart({ isOpen, onClose }: CartProps) {
   };
 
   const handleCheckout = () => {
-    onClose();
-    navigate('/checkout');
+    // Simulate order saving (replace with API call if needed)
+    setTimeout(() => {
+      dispatch(clearCart());
+      onClose();
+      navigate('/shoppingcart/thankyou');
+    }, 500);
   };
 
   // Debug function to clear cart
